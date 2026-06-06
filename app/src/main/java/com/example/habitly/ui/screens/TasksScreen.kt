@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -127,14 +128,23 @@ private fun TaskListItem(
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value != SwipeToDismissBoxValue.Settled) {
-                onDeleteClick()
-                true
-            } else {
-                false
+            when (value) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    onCheckedChange()
+                    false
+                }
+
+                SwipeToDismissBoxValue.EndToStart -> {
+                    onDeleteClick()
+                    true
+                }
+
+                SwipeToDismissBoxValue.Settled -> false
             }
         }
     )
+    val dismissDirection = dismissState.dismissDirection
+    val isDeleteAction = dismissDirection == SwipeToDismissBoxValue.EndToStart
 
     SwipeToDismissBox(
         state = dismissState,
@@ -142,14 +152,36 @@ private fun TaskListItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .background(
+                        if (isDeleteAction) {
+                            MaterialTheme.colorScheme.errorContainer
+                        } else {
+                            MaterialTheme.colorScheme.primaryContainer
+                        }
+                    )
                     .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = if (isDeleteAction) {
+                    Alignment.CenterEnd
+                } else {
+                    Alignment.CenterStart
+                }
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Delete,
-                    contentDescription = "Delete task",
-                    tint = MaterialTheme.colorScheme.onErrorContainer
+                    imageVector = if (isDeleteAction) {
+                        Icons.Outlined.Delete
+                    } else {
+                        Icons.Outlined.Check
+                    },
+                    contentDescription = if (isDeleteAction) {
+                        "Delete task"
+                    } else {
+                        "Complete task"
+                    },
+                    tint = if (isDeleteAction) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    }
                 )
             }
         }
