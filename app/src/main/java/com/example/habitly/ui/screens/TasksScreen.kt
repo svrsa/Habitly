@@ -1,6 +1,8 @@
 package com.example.habitly.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,14 +16,19 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
@@ -111,49 +118,80 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskListItem(
     task: StudyTaskEntity,
     onCheckedChange: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Checkbox(
-                checked = task.isCompleted,
-                onCheckedChange = { onCheckedChange() }
-            )
-            Text(
-                text = task.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (task.isCompleted) {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                textDecoration = if (task.isCompleted) {
-                    TextDecoration.LineThrough
-                } else {
-                    TextDecoration.None
-                },
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value != SwipeToDismissBoxValue.Settled) {
+                onDeleteClick()
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(top = 12.dp)
-            )
-            IconButton(
-                onClick = onDeleteClick
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
-                    contentDescription = "Delete task"
+                    contentDescription = "Delete task",
+                    tint = MaterialTheme.colorScheme.onErrorContainer
                 )
+            }
+        }
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Checkbox(
+                    checked = task.isCompleted,
+                    onCheckedChange = { onCheckedChange() }
+                )
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (task.isCompleted) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    textDecoration = if (task.isCompleted) {
+                        TextDecoration.LineThrough
+                    } else {
+                        TextDecoration.None
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 12.dp)
+                )
+                IconButton(
+                    onClick = onDeleteClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "Delete task"
+                    )
+                }
             }
         }
     }
