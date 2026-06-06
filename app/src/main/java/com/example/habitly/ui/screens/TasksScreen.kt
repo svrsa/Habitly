@@ -39,6 +39,8 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         factory = TasksViewModelFactory(application.studyTaskRepository)
     )
     val uiState by viewModel.uiState.collectAsState()
+    val completedTaskCount = uiState.tasks.count { task -> task.isCompleted }
+    val openTaskCount = uiState.tasks.size - completedTaskCount
 
     Column(
         modifier = modifier
@@ -49,6 +51,11 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         Text(
             text = "Tasks",
             style = MaterialTheme.typography.headlineLarge
+        )
+        Text(
+            text = "$openTaskCount open, $completedTaskCount completed",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Row(
@@ -63,7 +70,8 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                 singleLine = true
             )
             Button(
-                onClick = viewModel::addTask
+                onClick = viewModel::addTask,
+                enabled = uiState.newTaskTitle.isNotBlank()
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Add,
@@ -73,13 +81,19 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         }
 
         if (uiState.tasks.isEmpty()) {
-            Text(
-                text = "No study tasks yet.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "No study tasks yet.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         } else {
             LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
@@ -119,6 +133,11 @@ private fun TaskListItem(
             Text(
                 text = task.title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = if (task.isCompleted) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 textDecoration = if (task.isCompleted) {
                     TextDecoration.LineThrough
                 } else {
