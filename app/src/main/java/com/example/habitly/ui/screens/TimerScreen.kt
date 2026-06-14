@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -28,6 +29,13 @@ fun TimerScreen(modifier: Modifier = Modifier) {
     val seconds = uiState.remainingSeconds % 60
     val timerText = "%02d:%02d".format(minutes, seconds)
     val durations = listOf(15, 25, 45)
+    val totalSeconds = uiState.selectedDurationMinutes * 60
+    val progress = 1f - (uiState.remainingSeconds.toFloat() / totalSeconds)
+    val statusText = when {
+        uiState.remainingSeconds == 0 -> "Focus session complete"
+        uiState.isRunning -> "Focus time is running"
+        else -> "Ready to focus"
+    }
 
     Column(
         modifier = modifier
@@ -45,6 +53,20 @@ fun TimerScreen(modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.Bold
         )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
