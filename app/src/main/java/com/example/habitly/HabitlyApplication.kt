@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.example.habitly.data.local.HABITLY_DATABASE_NAME
 import com.example.habitly.data.local.HabitlyDatabase
+import com.example.habitly.data.local.MIGRATION_1_2
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyTaskRepository
 
@@ -13,7 +14,7 @@ class HabitlyApplication : Application() {
             applicationContext,
             HabitlyDatabase::class.java,
             HABITLY_DATABASE_NAME
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
     }
 
     val studyTaskRepository: StudyTaskRepository by lazy {
