@@ -21,14 +21,27 @@ class TimerViewModel : ViewModel() {
         }
 
         _uiState.update { state ->
-            state.copy(isRunning = true)
+            val remainingSeconds = if (state.remainingSeconds == 0) {
+                state.selectedDurationMinutes * 60
+            } else {
+                state.remainingSeconds
+            }
+
+            state.copy(
+                remainingSeconds = remainingSeconds,
+                isRunning = true
+            )
         }
 
         timerJob = viewModelScope.launch {
             while (_uiState.value.isRunning && _uiState.value.remainingSeconds > 0) {
                 delay(1_000)
                 _uiState.update { state ->
-                    state.copy(remainingSeconds = state.remainingSeconds - 1)
+                    if (state.isRunning) {
+                        state.copy(remainingSeconds = state.remainingSeconds - 1)
+                    } else {
+                        state
+                    }
                 }
             }
 
