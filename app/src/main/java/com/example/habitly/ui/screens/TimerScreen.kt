@@ -38,6 +38,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
     val totalSeconds = uiState.selectedDurationMinutes * 60
     val progress = 1f - (uiState.remainingSeconds.toFloat() / totalSeconds)
     val statusText = when {
+        uiState.wasSessionSaved -> "Focus session saved"
         uiState.remainingSeconds == 0 -> "Focus session complete"
         uiState.isRunning -> "Focus time is running"
         else -> "Ready to focus"
