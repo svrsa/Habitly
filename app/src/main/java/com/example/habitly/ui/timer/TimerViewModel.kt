@@ -32,6 +32,7 @@ class TimerViewModel(
 
             state.copy(
                 remainingSeconds = remainingSeconds,
+                wasSessionSaved = false,
                 isRunning = true
             )
         }
@@ -49,7 +50,7 @@ class TimerViewModel(
             }
 
             if (_uiState.value.remainingSeconds == 0) {
-                pauseTimer()
+                saveCompletedSession()
             }
         }
     }
@@ -66,7 +67,8 @@ class TimerViewModel(
         pauseTimer()
         _uiState.update { state ->
             state.copy(
-                remainingSeconds = state.selectedDurationMinutes * 60
+                remainingSeconds = state.selectedDurationMinutes * 60,
+                wasSessionSaved = false
             )
         }
     }
@@ -76,8 +78,23 @@ class TimerViewModel(
         _uiState.update { state ->
             state.copy(
                 selectedDurationMinutes = minutes,
-                remainingSeconds = minutes * 60
+                remainingSeconds = minutes * 60,
+                wasSessionSaved = false
             )
+        }
+    }
+
+    private suspend fun saveCompletedSession() {
+        val durationMinutes = _uiState.value.selectedDurationMinutes
+
+        timerJob = null
+        _uiState.update { state ->
+            state.copy(isRunning = false)
+        }
+
+        repository.addSession(durationMinutes)
+        _uiState.update { state ->
+            state.copy(wasSessionSaved = true)
         }
     }
 
