@@ -16,14 +16,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.timer.TimerViewModel
+import com.example.habitly.ui.timer.TimerViewModelFactory
 
 @Composable
 fun TimerScreen(modifier: Modifier = Modifier) {
-    val viewModel: TimerViewModel = viewModel()
+    val application = LocalContext.current.applicationContext as HabitlyApplication
+    val viewModel: TimerViewModel = viewModel(
+        factory = TimerViewModelFactory(application.studySessionRepository)
+    )
     val uiState by viewModel.uiState.collectAsState()
     val minutes = uiState.remainingSeconds / 60
     val seconds = uiState.remainingSeconds % 60
@@ -32,6 +38,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
     val totalSeconds = uiState.selectedDurationMinutes * 60
     val progress = 1f - (uiState.remainingSeconds.toFloat() / totalSeconds)
     val statusText = when {
+        uiState.wasSessionSaved -> "Focus session saved"
         uiState.remainingSeconds == 0 -> "Focus session complete"
         uiState.isRunning -> "Focus time is running"
         else -> "Ready to focus"

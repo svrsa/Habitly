@@ -2,6 +2,7 @@ package com.example.habitly.ui.timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.habitly.data.repository.StudySessionRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class TimerViewModel : ViewModel() {
+class TimerViewModel(
+    private val repository: StudySessionRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     val uiState: StateFlow<TimerUiState> = _uiState
 
@@ -29,6 +32,7 @@ class TimerViewModel : ViewModel() {
 
             state.copy(
                 remainingSeconds = remainingSeconds,
+                wasSessionSaved = false,
                 isRunning = true
             )
         }
@@ -46,7 +50,7 @@ class TimerViewModel : ViewModel() {
             }
 
             if (_uiState.value.remainingSeconds == 0) {
-                pauseTimer()
+                saveCompletedSession()
             }
         }
     }
@@ -63,7 +67,8 @@ class TimerViewModel : ViewModel() {
         pauseTimer()
         _uiState.update { state ->
             state.copy(
-                remainingSeconds = state.selectedDurationMinutes * 60
+                remainingSeconds = state.selectedDurationMinutes * 60,
+                wasSessionSaved = false
             )
         }
     }
@@ -73,8 +78,23 @@ class TimerViewModel : ViewModel() {
         _uiState.update { state ->
             state.copy(
                 selectedDurationMinutes = minutes,
-                remainingSeconds = minutes * 60
+                remainingSeconds = minutes * 60,
+                wasSessionSaved = false
             )
+        }
+    }
+
+    private suspend fun saveCompletedSession() {
+        val durationMinutes = _uiState.value.selectedDurationMinutes
+
+        timerJob = null
+        _uiState.update { state ->
+            state.copy(isRunning = false)
+        }
+
+        repository.addSession(durationMinutes)
+        _uiState.update { state ->
+            state.copy(wasSessionSaved = true)
         }
     }
 
