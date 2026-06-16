@@ -3,6 +3,7 @@ package com.example.habitly.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -14,17 +15,41 @@ import androidx.compose.ui.platform.LocalContext
 private val DarkColorScheme = darkColorScheme(
     primary = Mint80,
     secondary = BlueGrey80,
-    tertiary = Coral80
+    tertiary = Coral80,
+    background = Ink10,
+    surface = DeepGreen20,
+    surfaceVariant = DeepGreen30,
+    primaryContainer = DeepGreen30,
+    secondaryContainer = DeepGreen20,
+    onPrimary = Ink10,
+    onSecondary = Ink10,
+    onTertiary = Ink10,
+    onBackground = Ink80,
+    onSurface = Color(0xFFEAF1EE),
+    onSurfaceVariant = Color(0xFFC6D3CE),
+    onPrimaryContainer = Color(0xFFEAFBF4),
+    onSecondaryContainer = Color(0xFFEAF1F8)
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Mint40,
     secondary = BlueGrey40,
-    tertiary = Coral40
+    tertiary = Coral40,
+    background = SoftMist,
+    surface = SoftSurface,
+    surfaceVariant = SoftBlueContainer,
+    primaryContainer = SoftGreenContainer,
+    secondaryContainer = SoftBlueContainer,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Ink10,
+    onSurface = Ink10,
+    onSurfaceVariant = BlueGrey40,
+    onPrimaryContainer = DeepGreen20,
+    onSecondaryContainer = Ink10
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    /*
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
