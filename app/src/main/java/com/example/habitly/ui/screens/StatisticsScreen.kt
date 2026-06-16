@@ -1,23 +1,18 @@
 package com.example.habitly.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
+import com.example.habitly.ui.components.HabitlyScreen
+import com.example.habitly.ui.components.MetricCard
 import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 
@@ -32,28 +27,22 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
     )
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(
+    HabitlyScreen(
+        title = "Statistics",
+        subtitle = "Progress from your tasks and saved focus sessions.",
         modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Statistics",
-            style = MaterialTheme.typography.headlineLarge
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatisticCard(
+            MetricCard(
                 title = "Focus time",
                 value = "${uiState.totalFocusMinutes}",
                 subtitle = "minutes",
                 modifier = Modifier.weight(1f)
             )
-            StatisticCard(
+            MetricCard(
                 title = "Sessions",
                 value = "${uiState.totalSessions}",
                 subtitle = "completed",
@@ -65,50 +54,17 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatisticCard(
+            MetricCard(
                 title = "Open tasks",
                 value = "${uiState.openTasks}",
                 subtitle = "to study",
                 modifier = Modifier.weight(1f)
             )
-            StatisticCard(
+            MetricCard(
                 title = "Done tasks",
                 value = "${uiState.completedTasks}",
                 subtitle = "completed",
                 modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatisticCard(
-    title: String,
-    value: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
