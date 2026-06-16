@@ -1,23 +1,19 @@
 package com.example.habitly.ui.settings
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.habitly.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 
-class SettingsViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState
+class SettingsViewModel(
+    private val settingsRepository: SettingsRepository
+) : ViewModel() {
+    val uiState: StateFlow<SettingsUiState> = settingsRepository.settings
 
     fun selectDefaultFocusDuration(minutes: Int) {
-        _uiState.update { state ->
-            state.copy(defaultFocusDurationMinutes = minutes)
-        }
+        settingsRepository.selectDefaultFocusDuration(minutes)
     }
 
     fun setDailyReminderEnabled(isEnabled: Boolean) {
-        _uiState.update { state ->
-            state.copy(isDailyReminderEnabled = isEnabled)
-        }
+        settingsRepository.setDailyReminderEnabled(isEnabled)
     }
 }

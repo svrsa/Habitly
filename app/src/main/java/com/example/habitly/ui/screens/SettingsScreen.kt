@@ -15,14 +15,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.settings.SettingsViewModel
+import com.example.habitly.ui.settings.SettingsViewModelFactory
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
-    val viewModel: SettingsViewModel = viewModel()
+    val application = LocalContext.current.applicationContext as HabitlyApplication
+    val viewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(application.settingsRepository)
+    )
     val uiState by viewModel.uiState.collectAsState()
     val focusDurations = listOf(15, 25, 45)
 
