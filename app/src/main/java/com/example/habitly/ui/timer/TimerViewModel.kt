@@ -2,21 +2,53 @@ package com.example.habitly.ui.timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TimerViewModel(
-    private val repository: StudySessionRepository
+    private val sessionRepository: StudySessionRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(TimerUiState())
+    private val defaultFocusDurationMinutes =
+        settingsRepository.settings.value.defaultFocusDurationMinutes
+    private val _uiState = MutableStateFlow(
+        TimerUiState(
+            selectedDurationMinutes = defaultFocusDurationMinutes,
+            remainingSeconds = defaultFocusDurationMinutes * 60
+        )
+    )
     val uiState: StateFlow<TimerUiState> = _uiState
 
     private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.settings
+                .map { settings -> settings.defaultFocusDurationMinutes }
+                .distinctUntilChanged()
+                .collect { minutes ->
+                    _uiState.update { state ->
+                        if (state.isRunning) {
+                            state
+                        } else {
+                            state.copy(
+                                selectedDurationMinutes = minutes,
+                                remainingSeconds = minutes * 60,
+                                wasSessionSaved = false
+                            )
+                        }
+                    }
+                }
+        }
+    }
 
     fun startTimer() {
         if (_uiState.value.isRunning) {
@@ -92,7 +124,7 @@ class TimerViewModel(
             state.copy(isRunning = false)
         }
 
-        repository.addSession(durationMinutes)
+        sessionRepository.addSession(durationMinutes)
         _uiState.update { state ->
             state.copy(wasSessionSaved = true)
         }

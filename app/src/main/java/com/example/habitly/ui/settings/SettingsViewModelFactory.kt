@@ -1,25 +1,20 @@
-package com.example.habitly.ui.timer
+package com.example.habitly.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.habitly.data.repository.SettingsRepository
-import com.example.habitly.data.repository.StudySessionRepository
 
-class TimerViewModelFactory(
-    private val sessionRepository: StudySessionRepository,
+class SettingsViewModelFactory(
     private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(
         modelClass: Class<T>,
         extras: CreationExtras
     ): T {
-        if (modelClass.isAssignableFrom(TimerViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TimerViewModel(
-                sessionRepository = sessionRepository,
-                settingsRepository = settingsRepository
-            ) as T
+            return SettingsViewModel(settingsRepository) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel class")

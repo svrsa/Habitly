@@ -28,7 +28,10 @@ import com.example.habitly.ui.timer.TimerViewModelFactory
 fun TimerScreen(modifier: Modifier = Modifier) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: TimerViewModel = viewModel(
-        factory = TimerViewModelFactory(application.studySessionRepository)
+        factory = TimerViewModelFactory(
+            sessionRepository = application.studySessionRepository,
+            settingsRepository = application.settingsRepository
+        )
     )
     val uiState by viewModel.uiState.collectAsState()
     val minutes = uiState.remainingSeconds / 60
