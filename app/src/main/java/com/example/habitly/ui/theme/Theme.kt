@@ -1,61 +1,63 @@
 package com.example.habitly.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Mint80,
-    secondary = BlueGrey80,
-    tertiary = Coral80,
+    primary = AppleBlue80,
+    secondary = SkyBlue80,
+    tertiary = SoftViolet80,
     background = Ink10,
-    surface = DeepGreen20,
-    surfaceVariant = DeepGreen30,
-    primaryContainer = DeepGreen30,
-    secondaryContainer = DeepGreen20,
+    surface = DeepBlue20,
+    surfaceVariant = DeepBlue30,
+    primaryContainer = DeepBlue30,
+    secondaryContainer = DeepBlue20,
     onPrimary = Ink10,
     onSecondary = Ink10,
     onTertiary = Ink10,
     onBackground = Ink80,
-    onSurface = Color(0xFFEAF1EE),
-    onSurfaceVariant = Color(0xFFC6D3CE),
-    onPrimaryContainer = Color(0xFFEAFBF4),
+    onSurface = Color(0xFFEAF2FF),
+    onSurfaceVariant = Color(0xFFC8D6EA),
+    onPrimaryContainer = Color(0xFFEAF4FF),
     onSecondaryContainer = Color(0xFFEAF1F8)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Mint40,
-    secondary = BlueGrey40,
-    tertiary = Coral40,
+    primary = AppleBlue40,
+    secondary = SlateBlue40,
+    tertiary = SoftViolet40,
     background = SoftMist,
     surface = SoftSurface,
-    surfaceVariant = SoftBlueContainer,
-    primaryContainer = SoftGreenContainer,
-    secondaryContainer = SoftBlueContainer,
+    surfaceVariant = SoftBlueBorder,
+    primaryContainer = SoftBlueContainer,
+    secondaryContainer = SoftVioletContainer,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Ink10,
     onSurface = Ink10,
-    onSurfaceVariant = BlueGrey40,
-    onPrimaryContainer = DeepGreen20,
+    onSurfaceVariant = SlateBlue40,
+    onPrimaryContainer = DeepBlue20,
     onSecondaryContainer = Ink10
+)
 
-    /*
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val HabitlyShapes = Shapes(
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp)
 )
 
 @Composable
@@ -78,6 +80,7 @@ fun HabitlyTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = HabitlyShapes,
         content = content
     )
 }

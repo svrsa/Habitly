@@ -3,6 +3,11 @@ package com.example.habitly.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,12 +45,14 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
                 title = "Focus time",
                 value = "${uiState.totalFocusMinutes}",
                 subtitle = "minutes",
+                icon = Icons.Outlined.PlayArrow,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "Sessions",
                 value = "${uiState.totalSessions}",
                 subtitle = "completed",
+                icon = Icons.Outlined.Schedule,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -58,12 +65,14 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
                 title = "Open tasks",
                 value = "${uiState.openTasks}",
                 subtitle = "to study",
+                icon = Icons.Outlined.BarChart,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "Done tasks",
                 value = "${uiState.completedTasks}",
                 subtitle = "completed",
+                icon = Icons.Outlined.CheckCircle,
                 modifier = Modifier.weight(1f)
             )
         }
