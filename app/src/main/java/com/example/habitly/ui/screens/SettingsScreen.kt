@@ -36,6 +36,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             text = "Settings",
             style = MaterialTheme.typography.headlineLarge
         )
+        Text(
+            text = "Adjust your study defaults.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -92,6 +97,26 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 Switch(
                     checked = uiState.isDailyReminderEnabled,
                     onCheckedChange = viewModel::setDailyReminderEnabled
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Habitly",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Study habit tracker for tasks, focus sessions, and progress.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
