@@ -148,7 +148,7 @@ class TimerViewModel(
         val state = _uiState.value
         val elapsedSeconds = state.selectedDurationMinutes * 60 - state.remainingSeconds
 
-        if (elapsedSeconds <= 0 || state.wasSessionSaved) {
+        if (elapsedSeconds < MINIMUM_PARTIAL_SESSION_SECONDS || state.wasSessionSaved) {
             return false
         }
 
@@ -160,5 +160,9 @@ class TimerViewModel(
     override fun onCleared() {
         timerJob?.cancel()
         super.onCleared()
+    }
+
+    private companion object {
+        const val MINIMUM_PARTIAL_SESSION_SECONDS = 60
     }
 }
