@@ -38,6 +38,14 @@ class StatisticsViewModel(
                             durationMinutes = session.durationMinutes
                         )
                     }
+                ),
+                recentSessions = buildRecentSessions(
+                    sessions = sessions.map { session ->
+                        SessionDate(
+                            completedAt = session.completedAt,
+                            durationMinutes = session.durationMinutes
+                        )
+                    }
                 )
             )
         }.stateIn(
@@ -63,6 +71,39 @@ class StatisticsViewModel(
                 label = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                 focusMinutes = focusMinutesByDate[date] ?: 0
             )
+        }
+    }
+
+    private fun buildRecentSessions(sessions: List<SessionDate>): List<RecentFocusSession> {
+        val zoneId = ZoneId.systemDefault()
+        val today = LocalDate.now(zoneId)
+
+        return sessions
+            .sortedByDescending { session -> session.completedAt }
+            .take(5)
+            .map { session ->
+                val completedDate = Instant.ofEpochMilli(session.completedAt)
+                    .atZone(zoneId)
+                    .toLocalDate()
+
+                RecentFocusSession(
+                    durationMinutes = session.durationMinutes,
+                    completedLabel = formatCompletedLabel(
+                        completedDate = completedDate,
+                        today = today
+                    )
+                )
+            }
+    }
+
+    private fun formatCompletedLabel(
+        completedDate: LocalDate,
+        today: LocalDate
+    ): String {
+        return when (completedDate) {
+            today -> "Today"
+            today.minusDays(1) -> "Yesterday"
+            else -> completedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
         }
     }
 

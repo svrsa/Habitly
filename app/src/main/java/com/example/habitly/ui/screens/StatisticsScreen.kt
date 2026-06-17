@@ -27,6 +27,7 @@ import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.components.MetricCard
 import com.example.habitly.ui.statistics.DailyFocusStat
+import com.example.habitly.ui.statistics.RecentFocusSession
 import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 
@@ -88,6 +89,10 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
 
         WeeklyFocusChart(
             dailyStats = uiState.dailyFocusStats
+        )
+
+        RecentSessionsCard(
+            sessions = uiState.recentSessions
         )
     }
 }
@@ -180,6 +185,55 @@ private fun WeeklyFocusChart(
                         text = "${stat.focusMinutes}",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentSessionsCard(
+    sessions: List<RecentFocusSession>,
+    modifier: Modifier = Modifier
+) {
+    HabitlyCard(
+        modifier = modifier
+    ) {
+        Text(
+            text = "Recent sessions",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        if (sessions.isEmpty()) {
+            Text(
+                text = "Completed focus sessions will appear here.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            sessions.forEach { session ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "${session.durationMinutes} min",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Focus session",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = session.completedLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
