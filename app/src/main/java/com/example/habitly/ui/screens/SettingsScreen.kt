@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,6 +54,17 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         FilterChip(
                             selected = uiState.defaultFocusDurationMinutes == duration,
                             onClick = { viewModel.selectDefaultFocusDuration(duration) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = uiState.defaultFocusDurationMinutes == duration,
+                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedBorderColor = MaterialTheme.colorScheme.primaryContainer
+                            ),
                             label = {
                                 Text(text = "$duration min")
                             }
@@ -83,7 +96,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
                 Switch(
                     checked = uiState.isDailyReminderEnabled,
-                    onCheckedChange = viewModel::setDailyReminderEnabled
+                    onCheckedChange = viewModel::setDailyReminderEnabled,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
             }
         }

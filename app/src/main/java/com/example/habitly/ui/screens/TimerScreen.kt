@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -101,6 +102,17 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                     FilterChip(
                         selected = uiState.selectedDurationMinutes == duration,
                         onClick = { viewModel.selectDuration(duration) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = !uiState.isRunning,
+                            selected = uiState.selectedDurationMinutes == duration,
+                            borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectedBorderColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
                         label = {
                             Text(text = "$duration min")
                         },

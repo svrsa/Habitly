@@ -151,11 +151,12 @@ private fun TaskListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        if (isDeleteAction) {
+                        color = if (isDeleteAction) {
                             MaterialTheme.colorScheme.errorContainer
                         } else {
                             MaterialTheme.colorScheme.primaryContainer
-                        }
+                        },
+                        shape = MaterialTheme.shapes.large
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = if (isDeleteAction) {
