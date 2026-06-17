@@ -1,21 +1,26 @@
 package com.example.habitly.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,34 +63,50 @@ fun TimerScreen(modifier: Modifier = Modifier) {
             contentPadding = PaddingValues(24.dp)
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(22.dp)
             ) {
+                FocusTimerRing(
+                    timerText = timerText,
+                    progress = progress,
+                    durationText = "${uiState.selectedDurationMinutes} min"
+                )
+
                 Text(
-                    text = "Current session",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = if (uiState.isRunning) {
+                        "Stay with one task until the session ends."
+                    } else {
+                        "Choose a duration and begin a focused study block."
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Text(
-                    text = timerText,
-                    style = MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                    Text(
-                        text = "${uiState.selectedDurationMinutes} minute focus block",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Button(
+                        onClick = {
+                            if (uiState.isRunning) {
+                                viewModel.pauseTimer()
+                            } else {
+                                viewModel.startTimer()
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = if (uiState.isRunning) "Pause" else "Start focus"
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = viewModel::resetTimer,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Reset")
+                    }
                 }
             }
         }
@@ -121,34 +142,57 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
 
-        HabitlyCard {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = {
-                        if (uiState.isRunning) {
-                            viewModel.pauseTimer()
-                        } else {
-                            viewModel.startTimer()
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = if (uiState.isRunning) "Pause" else "Start"
-                    )
-                }
+@Composable
+private fun FocusTimerRing(
+    timerText: String,
+    progress: Float,
+    durationText: String,
+    modifier: Modifier = Modifier
+) {
+    val trackColor = MaterialTheme.colorScheme.primaryContainer
+    val progressColor = MaterialTheme.colorScheme.primary
 
-                OutlinedButton(
-                    onClick = viewModel::resetTimer,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "Reset")
-                }
-            }
+    Box(
+        modifier = modifier.size(236.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(
+            modifier = Modifier.size(236.dp)
+        ) {
+            val strokeWidth = 14.dp.toPx()
+            drawCircle(
+                color = trackColor,
+                style = Stroke(width = strokeWidth)
+            )
+            drawArc(
+                color = progressColor,
+                startAngle = -90f,
+                sweepAngle = progress * 360f,
+                useCenter = false,
+                style = Stroke(
+                    width = strokeWidth,
+                    cap = StrokeCap.Round
+                )
+            )
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = timerText,
+                style = MaterialTheme.typography.displayLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = durationText,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
