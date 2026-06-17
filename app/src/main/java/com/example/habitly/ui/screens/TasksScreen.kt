@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
 import com.example.habitly.data.local.entity.StudyTaskEntity
+import com.example.habitly.ui.components.HabitlyCard
+import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.tasks.TasksViewModel
 import com.example.habitly.ui.tasks.TasksViewModelFactory
 
@@ -50,53 +52,49 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     val completedTaskCount = uiState.tasks.count { task -> task.isCompleted }
     val openTaskCount = uiState.tasks.size - completedTaskCount
 
-    Column(
+    HabitlyScreen(
+        title = "Tasks",
+        subtitle = "$openTaskCount open, $completedTaskCount completed",
         modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Tasks",
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Text(
-            text = "$openTaskCount open, $completedTaskCount completed",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(
-                value = uiState.newTaskTitle,
-                onValueChange = viewModel::onNewTaskTitleChange,
-                label = { Text(text = "New study task") },
-                modifier = Modifier.weight(1f),
-                singleLine = true
+        HabitlyCard {
+            Text(
+                text = "Add study task",
+                style = MaterialTheme.typography.titleMedium
             )
-            Button(
-                onClick = viewModel::addTask,
-                enabled = uiState.newTaskTitle.isNotBlank()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = "Add task"
+                OutlinedTextField(
+                    value = uiState.newTaskTitle,
+                    onValueChange = viewModel::onNewTaskTitleChange,
+                    label = { Text(text = "New study task") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
                 )
+                Button(
+                    onClick = viewModel::addTask,
+                    enabled = uiState.newTaskTitle.isNotBlank()
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "Add task"
+                    )
+                }
             }
         }
 
         if (uiState.tasks.isEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            HabitlyCard {
                 Text(
-                    text = "No study tasks yet.",
+                    text = "No study tasks yet",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Add your first topic, chapter, or exam prep step.",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -153,11 +151,12 @@ private fun TaskListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        if (isDeleteAction) {
+                        color = if (isDeleteAction) {
                             MaterialTheme.colorScheme.errorContainer
                         } else {
                             MaterialTheme.colorScheme.primaryContainer
-                        }
+                        },
+                        shape = MaterialTheme.shapes.large
                     )
                     .padding(horizontal = 20.dp),
                 contentAlignment = if (isDeleteAction) {
@@ -186,8 +185,8 @@ private fun TaskListItem(
             }
         }
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth()
+        HabitlyCard(
+            contentPadding = PaddingValues(0.dp)
         ) {
             Row(
                 modifier = Modifier

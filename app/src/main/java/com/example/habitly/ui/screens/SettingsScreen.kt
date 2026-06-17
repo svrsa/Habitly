@@ -3,13 +3,12 @@ package com.example.habitly.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
+import com.example.habitly.ui.components.HabitlyCard
+import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.settings.SettingsViewModel
 import com.example.habitly.ui.settings.SettingsViewModelFactory
 
@@ -32,27 +33,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val uiState by viewModel.uiState.collectAsState()
     val focusDurations = listOf(15, 25, 45)
 
-    Column(
+    HabitlyScreen(
+        title = "Settings",
+        subtitle = "Adjust your study defaults.",
         modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Text(
-            text = "Adjust your study defaults.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        HabitlyCard {
             Column(
-                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
@@ -67,6 +54,17 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         FilterChip(
                             selected = uiState.defaultFocusDurationMinutes == duration,
                             onClick = { viewModel.selectDefaultFocusDuration(duration) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = uiState.defaultFocusDurationMinutes == duration,
+                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedBorderColor = MaterialTheme.colorScheme.primaryContainer
+                            ),
                             label = {
                                 Text(text = "$duration min")
                             }
@@ -76,13 +74,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        HabitlyCard {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
@@ -102,16 +96,20 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
                 Switch(
                     checked = uiState.isDailyReminderEnabled,
-                    onCheckedChange = viewModel::setDailyReminderEnabled
+                    onCheckedChange = viewModel::setDailyReminderEnabled,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        HabitlyCard {
             Column(
-                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
