@@ -96,23 +96,37 @@ class TimerViewModel(
     }
 
     fun resetTimer() {
-        pauseTimer()
-        _uiState.update { state ->
-            state.copy(
-                remainingSeconds = state.selectedDurationMinutes * 60,
-                wasSessionSaved = false
-            )
+        timerJob?.cancel()
+        timerJob = null
+
+        viewModelScope.launch {
+            val savedPartialSession = saveCurrentProgressSession()
+
+            _uiState.update { state ->
+                state.copy(
+                    remainingSeconds = state.selectedDurationMinutes * 60,
+                    isRunning = false,
+                    wasSessionSaved = savedPartialSession
+                )
+            }
         }
     }
 
     fun selectDuration(minutes: Int) {
-        pauseTimer()
-        _uiState.update { state ->
-            state.copy(
-                selectedDurationMinutes = minutes,
-                remainingSeconds = minutes * 60,
-                wasSessionSaved = false
-            )
+        timerJob?.cancel()
+        timerJob = null
+
+        viewModelScope.launch {
+            saveCurrentProgressSession()
+
+            _uiState.update { state ->
+                state.copy(
+                    selectedDurationMinutes = minutes,
+                    remainingSeconds = minutes * 60,
+                    isRunning = false,
+                    wasSessionSaved = false
+                )
+            }
         }
     }
 
@@ -128,6 +142,19 @@ class TimerViewModel(
         _uiState.update { state ->
             state.copy(wasSessionSaved = true)
         }
+    }
+
+    private suspend fun saveCurrentProgressSession(): Boolean {
+        val state = _uiState.value
+        val elapsedSeconds = state.selectedDurationMinutes * 60 - state.remainingSeconds
+
+        if (elapsedSeconds <= 0 || state.wasSessionSaved) {
+            return false
+        }
+
+        val elapsedMinutes = (elapsedSeconds + 59) / 60
+        sessionRepository.addSession(elapsedMinutes)
+        return true
     }
 
     override fun onCleared() {
