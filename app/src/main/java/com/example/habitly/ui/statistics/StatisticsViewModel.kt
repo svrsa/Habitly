@@ -16,7 +16,7 @@ import java.util.Locale
 
 class StatisticsViewModel(
     taskRepository: StudyTaskRepository,
-    sessionRepository: StudySessionRepository
+    private val sessionRepository: StudySessionRepository
 ) : ViewModel() {
     val uiState: StateFlow<StatisticsUiState> =
         combine(
@@ -34,6 +34,7 @@ class StatisticsViewModel(
                 dailyFocusStats = buildDailyFocusStats(
                     sessions = sessions.map { session ->
                         SessionDate(
+                            id = session.id,
                             completedAt = session.completedAt,
                             durationMinutes = session.durationMinutes
                         )
@@ -42,6 +43,7 @@ class StatisticsViewModel(
                 recentSessions = buildRecentSessions(
                     sessions = sessions.map { session ->
                         SessionDate(
+                            id = session.id,
                             completedAt = session.completedAt,
                             durationMinutes = session.durationMinutes
                         )
@@ -87,6 +89,7 @@ class StatisticsViewModel(
                     .toLocalDate()
 
                 RecentFocusSession(
+                    id = session.id,
                     durationMinutes = session.durationMinutes,
                     completedLabel = formatCompletedLabel(
                         completedDate = completedDate,
@@ -107,7 +110,14 @@ class StatisticsViewModel(
         }
     }
 
+    fun deleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            sessionRepository.deleteSession(sessionId)
+        }
+    }
+
     private data class SessionDate(
+        val id: Long,
         val completedAt: Long,
         val durationMinutes: Int
     )

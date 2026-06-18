@@ -13,4 +13,7 @@ interface StudySessionDao {
 
     @Insert
     suspend fun insertSession(session: StudySessionEntity)
+
+    @Query("DELETE FROM study_sessions WHERE id = :sessionId")
+    suspend fun deleteSession(sessionId: Long)
 }

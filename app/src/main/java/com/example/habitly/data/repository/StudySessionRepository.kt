@@ -16,4 +16,8 @@ class StudySessionRepository(
 
         studySessionDao.insertSession(session)
     }
+
+    suspend fun deleteSession(sessionId: Long) {
+        studySessionDao.deleteSession(sessionId)
+    }
 }
