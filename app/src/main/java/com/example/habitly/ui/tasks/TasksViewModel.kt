@@ -17,13 +17,20 @@ class TasksViewModel(
 ) : ViewModel() {
     private val newTaskTitle = MutableStateFlow("")
     private val selectedPriority = MutableStateFlow(TaskPriority.MEDIUM)
+    private val selectedFilter = MutableStateFlow(TaskPriorityFilter.ALL)
 
     val uiState: StateFlow<TasksUiState> =
-        combine(repository.allTasks, newTaskTitle, selectedPriority) { tasks, title, priority ->
+        combine(
+            repository.allTasks,
+            newTaskTitle,
+            selectedPriority,
+            selectedFilter
+        ) { tasks, title, priority, filter ->
             TasksUiState(
                 tasks = tasks,
                 newTaskTitle = title,
-                selectedPriority = priority
+                selectedPriority = priority,
+                selectedFilter = filter
             )
         }.stateIn(
             scope = viewModelScope,
@@ -37,6 +44,10 @@ class TasksViewModel(
 
     fun onPrioritySelected(priority: TaskPriority) {
         selectedPriority.value = priority
+    }
+
+    fun onFilterSelected(filter: TaskPriorityFilter) {
+        selectedFilter.value = filter
     }
 
     fun addTask() {

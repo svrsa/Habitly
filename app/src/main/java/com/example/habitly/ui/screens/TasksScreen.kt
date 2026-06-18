@@ -51,6 +51,7 @@ import com.example.habitly.data.local.entity.StudyTaskEntity
 import com.example.habitly.data.local.entity.TaskPriority
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
+import com.example.habitly.ui.tasks.TaskPriorityFilter
 import com.example.habitly.ui.tasks.TasksViewModel
 import com.example.habitly.ui.tasks.TasksViewModelFactory
 
@@ -67,20 +68,22 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     )
     val openTasks = sortedTasks.filter { task -> !task.isCompleted }
     val completedTasks = sortedTasks.filter { task -> task.isCompleted }
+    val filteredOpenTasks = openTasks.filterByPriority(uiState.selectedFilter)
+    val filteredCompletedTasks = completedTasks.filterByPriority(uiState.selectedFilter)
     val taskListState = rememberLazyListState()
     var showCompletedTasks by rememberSaveable {
         mutableStateOf(false)
     }
 
-    LaunchedEffect(openTasks.size) {
-        if (openTasks.isNotEmpty()) {
+    LaunchedEffect(filteredOpenTasks.size, uiState.selectedFilter) {
+        if (filteredOpenTasks.isNotEmpty()) {
             taskListState.animateScrollToItem(0)
         }
     }
 
     HabitlyScreen(
         title = "Tasks",
-        subtitle = "${openTasks.size} open, ${completedTasks.size} completed",
+        subtitle = "${filteredOpenTasks.size} open, ${filteredCompletedTasks.size} completed",
         modifier = modifier,
         scrollable = false
     ) {
@@ -136,6 +139,11 @@ fun TasksScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        TaskFilterRow(
+            selectedFilter = uiState.selectedFilter,
+            onFilterSelected = viewModel::onFilterSelected
+        )
+
         if (uiState.tasks.isEmpty()) {
             HabitlyCard {
                 Text(
@@ -155,7 +163,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
-                    items = openTasks,
+                    items = filteredOpenTasks,
                     key = { task -> task.id }
                 ) { task ->
                     TaskListItem(
@@ -165,10 +173,10 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                     )
                 }
 
-                if (completedTasks.isNotEmpty()) {
+                if (filteredCompletedTasks.isNotEmpty()) {
                     item {
                         CompletedTasksHeader(
-                            completedCount = completedTasks.size,
+                            completedCount = filteredCompletedTasks.size,
                             expanded = showCompletedTasks,
                             onToggle = { showCompletedTasks = !showCompletedTasks }
                         )
@@ -177,7 +185,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
 
                 if (showCompletedTasks) {
                     items(
-                        items = completedTasks,
+                        items = filteredCompletedTasks,
                         key = { task -> task.id }
                     ) { task ->
                         TaskListItem(
@@ -192,12 +200,69 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     }
 }
 
+private fun List<StudyTaskEntity>.filterByPriority(
+    filter: TaskPriorityFilter
+): List<StudyTaskEntity> {
+    return filter.priority?.let { priority ->
+        filter { task -> task.priority == priority }
+    } ?: this
+}
+
 private val TaskPriority.label: String
     get() = when (this) {
         TaskPriority.LOW -> "Low"
         TaskPriority.MEDIUM -> "Medium"
         TaskPriority.HIGH -> "High"
     }
+
+private val TaskPriorityFilter.label: String
+    get() = when (this) {
+        TaskPriorityFilter.ALL -> "All"
+        TaskPriorityFilter.HIGH -> "High"
+        TaskPriorityFilter.MEDIUM -> "Medium"
+        TaskPriorityFilter.LOW -> "Low"
+    }
+
+@Composable
+private fun TaskFilterRow(
+    selectedFilter: TaskPriorityFilter,
+    onFilterSelected: (TaskPriorityFilter) -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        TaskPriorityFilter.entries.forEach { filter ->
+            val priority = filter.priority
+            FilterChip(
+                selected = selectedFilter == filter,
+                onClick = { onFilterSelected(filter) },
+                colors = if (priority != null) {
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = priority.containerColor,
+                        selectedLabelColor = priority.contentColor,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedFilter == filter,
+                    borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                    selectedBorderColor = priority?.containerColor
+                        ?: MaterialTheme.colorScheme.primaryContainer
+                ),
+                label = {
+                    Text(text = filter.label)
+                }
+            )
+        }
+    }
+}
 
 private val TaskPriority.sortOrder: Int
     get() = when (this) {
