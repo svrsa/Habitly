@@ -17,3 +17,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
     }
 }
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            "ALTER TABLE study_tasks ADD COLUMN priority TEXT NOT NULL DEFAULT 'MEDIUM'"
+        )
+    }
+}

@@ -2,6 +2,7 @@ package com.example.habitly.data.repository
 
 import com.example.habitly.data.local.dao.StudyTaskDao
 import com.example.habitly.data.local.entity.StudyTaskEntity
+import com.example.habitly.data.local.entity.TaskPriority
 import kotlinx.coroutines.flow.Flow
 
 class StudyTaskRepository(
@@ -9,10 +10,15 @@ class StudyTaskRepository(
 ) {
     val allTasks: Flow<List<StudyTaskEntity>> = studyTaskDao.getAllTasks()
 
-    suspend fun addTask(title: String, description: String = "") {
+    suspend fun addTask(
+        title: String,
+        description: String = "",
+        priority: TaskPriority = TaskPriority.MEDIUM
+    ) {
         val task = StudyTaskEntity(
             title = title,
-            description = description
+            description = description,
+            priority = priority
         )
 
         studyTaskDao.insertTask(task)
