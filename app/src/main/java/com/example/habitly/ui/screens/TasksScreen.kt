@@ -11,27 +11,37 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -51,12 +61,26 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         factory = TasksViewModelFactory(application.studyTaskRepository)
     )
     val uiState by viewModel.uiState.collectAsState()
-    val completedTaskCount = uiState.tasks.count { task -> task.isCompleted }
-    val openTaskCount = uiState.tasks.size - completedTaskCount
+    val sortedTasks = uiState.tasks.sortedWith(
+        compareBy<StudyTaskEntity> { task -> task.priority.sortOrder }
+            .thenByDescending { task -> task.createdAt }
+    )
+    val openTasks = sortedTasks.filter { task -> !task.isCompleted }
+    val completedTasks = sortedTasks.filter { task -> task.isCompleted }
+    val taskListState = rememberLazyListState()
+    var showCompletedTasks by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(openTasks.size) {
+        if (openTasks.isNotEmpty()) {
+            taskListState.animateScrollToItem(0)
+        }
+    }
 
     HabitlyScreen(
         title = "Tasks",
-        subtitle = "$openTaskCount open, $completedTaskCount completed",
+        subtitle = "${openTasks.size} open, ${completedTasks.size} completed",
         modifier = modifier,
         scrollable = false
     ) {
@@ -93,6 +117,17 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                     FilterChip(
                         selected = uiState.selectedPriority == priority,
                         onClick = { viewModel.onPrioritySelected(priority) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = priority.containerColor,
+                            selectedLabelColor = priority.contentColor,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = uiState.selectedPriority == priority,
+                            borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectedBorderColor = priority.containerColor
+                        ),
                         label = {
                             Text(text = priority.label)
                         }
@@ -116,10 +151,11 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
+                state = taskListState,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
-                    items = uiState.tasks,
+                    items = openTasks,
                     key = { task -> task.id }
                 ) { task ->
                     TaskListItem(
@@ -127,6 +163,29 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                         onCheckedChange = { viewModel.toggleTaskCompleted(task) },
                         onDeleteClick = { viewModel.deleteTask(task) }
                     )
+                }
+
+                if (completedTasks.isNotEmpty()) {
+                    item {
+                        CompletedTasksHeader(
+                            completedCount = completedTasks.size,
+                            expanded = showCompletedTasks,
+                            onToggle = { showCompletedTasks = !showCompletedTasks }
+                        )
+                    }
+                }
+
+                if (showCompletedTasks) {
+                    items(
+                        items = completedTasks,
+                        key = { task -> task.id }
+                    ) { task ->
+                        TaskListItem(
+                            task = task,
+                            onCheckedChange = { viewModel.toggleTaskCompleted(task) },
+                            onDeleteClick = { viewModel.deleteTask(task) }
+                        )
+                    }
                 }
             }
         }
@@ -138,6 +197,13 @@ private val TaskPriority.label: String
         TaskPriority.LOW -> "Low"
         TaskPriority.MEDIUM -> "Medium"
         TaskPriority.HIGH -> "High"
+    }
+
+private val TaskPriority.sortOrder: Int
+    get() = when (this) {
+        TaskPriority.HIGH -> 0
+        TaskPriority.MEDIUM -> 1
+        TaskPriority.LOW -> 2
     }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,29 +281,33 @@ private fun TaskListItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = task.isCompleted,
                     onCheckedChange = { onCheckedChange() }
                 )
-                Text(
-                    text = task.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (task.isCompleted) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    textDecoration = if (task.isCompleted) {
-                        TextDecoration.LineThrough
-                    } else {
-                        TextDecoration.None
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(top = 12.dp)
-                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = task.title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (task.isCompleted) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        textDecoration = if (task.isCompleted) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        }
+                    )
+                    PriorityChip(priority = task.priority)
+                }
                 IconButton(
                     onClick = onDeleteClick
                 ) {
@@ -250,3 +320,81 @@ private fun TaskListItem(
         }
     }
 }
+
+@Composable
+private fun CompletedTasksHeader(
+    completedCount: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit
+) {
+    HabitlyCard(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Done",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "$completedCount completed tasks",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(
+                onClick = onToggle
+            ) {
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Outlined.KeyboardArrowUp
+                    } else {
+                        Icons.Outlined.KeyboardArrowDown
+                    },
+                    contentDescription = if (expanded) {
+                        "Hide completed tasks"
+                    } else {
+                        "Show completed tasks"
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PriorityChip(priority: TaskPriority) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = priority.containerColor,
+        contentColor = priority.contentColor
+    ) {
+        Text(
+            text = priority.label,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+        )
+    }
+}
+
+private val TaskPriority.containerColor: Color
+    @Composable
+    get() = when (this) {
+        TaskPriority.LOW -> Color(0xFFE7F1FF)
+        TaskPriority.MEDIUM -> Color(0xFFFFF1CC)
+        TaskPriority.HIGH -> Color(0xFFFFE2E0)
+    }
+
+private val TaskPriority.contentColor: Color
+    @Composable
+    get() = when (this) {
+        TaskPriority.LOW -> MaterialTheme.colorScheme.primary
+        TaskPriority.MEDIUM -> Color(0xFF8A5A00)
+        TaskPriority.HIGH -> Color(0xFFD92D20)
+    }
