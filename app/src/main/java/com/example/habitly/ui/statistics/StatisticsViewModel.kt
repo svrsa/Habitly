@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -16,7 +17,7 @@ import java.util.Locale
 
 class StatisticsViewModel(
     taskRepository: StudyTaskRepository,
-    sessionRepository: StudySessionRepository
+    private val sessionRepository: StudySessionRepository
 ) : ViewModel() {
     val uiState: StateFlow<StatisticsUiState> =
         combine(
@@ -34,6 +35,16 @@ class StatisticsViewModel(
                 dailyFocusStats = buildDailyFocusStats(
                     sessions = sessions.map { session ->
                         SessionDate(
+                            id = session.id,
+                            completedAt = session.completedAt,
+                            durationMinutes = session.durationMinutes
+                        )
+                    }
+                ),
+                recentSessions = buildRecentSessions(
+                    sessions = sessions.map { session ->
+                        SessionDate(
+                            id = session.id,
                             completedAt = session.completedAt,
                             durationMinutes = session.durationMinutes
                         )
@@ -66,7 +77,48 @@ class StatisticsViewModel(
         }
     }
 
+    private fun buildRecentSessions(sessions: List<SessionDate>): List<RecentFocusSession> {
+        val zoneId = ZoneId.systemDefault()
+        val today = LocalDate.now(zoneId)
+
+        return sessions
+            .sortedByDescending { session -> session.completedAt }
+            .take(5)
+            .map { session ->
+                val completedDate = Instant.ofEpochMilli(session.completedAt)
+                    .atZone(zoneId)
+                    .toLocalDate()
+
+                RecentFocusSession(
+                    id = session.id,
+                    durationMinutes = session.durationMinutes,
+                    completedLabel = formatCompletedLabel(
+                        completedDate = completedDate,
+                        today = today
+                    )
+                )
+            }
+    }
+
+    private fun formatCompletedLabel(
+        completedDate: LocalDate,
+        today: LocalDate
+    ): String {
+        return when (completedDate) {
+            today -> "Today"
+            today.minusDays(1) -> "Yesterday"
+            else -> completedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+    }
+
+    fun deleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            sessionRepository.deleteSession(sessionId)
+        }
+    }
+
     private data class SessionDate(
+        val id: Long,
         val completedAt: Long,
         val durationMinutes: Int
     )
