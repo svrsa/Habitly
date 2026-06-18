@@ -10,5 +10,6 @@ data class StudyTaskEntity(
     val title: String,
     val description: String = "",
     val isCompleted: Boolean = false,
+    val priority: TaskPriority = TaskPriority.MEDIUM,
     val createdAt: Long = System.currentTimeMillis()
 )
