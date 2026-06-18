@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
 import com.example.habitly.data.local.entity.StudyTaskEntity
+import com.example.habitly.data.local.entity.TaskPriority
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.tasks.TasksViewModel
@@ -55,7 +57,8 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     HabitlyScreen(
         title = "Tasks",
         subtitle = "$openTaskCount open, $completedTaskCount completed",
-        modifier = modifier
+        modifier = modifier,
+        scrollable = false
     ) {
         HabitlyCard {
             Text(
@@ -80,6 +83,19 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                     Icon(
                         imageVector = Icons.Outlined.Add,
                         contentDescription = "Add task"
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TaskPriority.entries.forEach { priority ->
+                    FilterChip(
+                        selected = uiState.selectedPriority == priority,
+                        onClick = { viewModel.onPrioritySelected(priority) },
+                        label = {
+                            Text(text = priority.label)
+                        }
                     )
                 }
             }
@@ -116,6 +132,13 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         }
     }
 }
+
+private val TaskPriority.label: String
+    get() = when (this) {
+        TaskPriority.LOW -> "Low"
+        TaskPriority.MEDIUM -> "Medium"
+        TaskPriority.HIGH -> "High"
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

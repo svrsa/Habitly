@@ -16,7 +16,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+
+private val NoOverscrollNestedScrollConnection = object : NestedScrollConnection {}
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
@@ -24,15 +28,22 @@ fun HabitlyScreen(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    scrollable: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val scrollModifier = if (scrollable) {
+        Modifier.verticalScroll(rememberScrollState())
+    } else {
+        Modifier.nestedScroll(NoOverscrollNestedScrollConnection)
+    }
+
     CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
+                .then(scrollModifier)
                 .padding(horizontal = 24.dp)
                 .padding(top = 16.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
