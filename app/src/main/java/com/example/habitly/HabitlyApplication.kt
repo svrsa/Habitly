@@ -28,6 +28,6 @@ class HabitlyApplication : Application() {
     }
 
     val settingsRepository: SettingsRepository by lazy {
-        SettingsRepository()
+        SettingsRepository(applicationContext)
     }
 }

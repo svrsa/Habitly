@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
+import com.example.habitly.ui.settings.SettingsUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +18,10 @@ class TimerViewModel(
     private val sessionRepository: StudySessionRepository,
     settingsRepository: SettingsRepository
 ) : ViewModel() {
-    private val defaultFocusDurationMinutes =
-        settingsRepository.settings.value.defaultFocusDurationMinutes
     private val _uiState = MutableStateFlow(
         TimerUiState(
-            selectedDurationMinutes = defaultFocusDurationMinutes,
-            remainingSeconds = defaultFocusDurationMinutes * 60
+            selectedDurationMinutes = SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES,
+            remainingSeconds = SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES * 60
         )
     )
     val uiState: StateFlow<TimerUiState> = _uiState
