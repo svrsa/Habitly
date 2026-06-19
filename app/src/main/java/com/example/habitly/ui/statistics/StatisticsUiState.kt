@@ -10,6 +10,7 @@ data class StatisticsUiState(
     val currentStreakDays: Int = 0,
     val longestStreakDays: Int = 0,
     val dailyFocusStats: List<DailyFocusStat> = emptyList(),
+    val studyHeatmap: List<StudyHeatmapDay> = emptyList(),
     val recentSessions: List<RecentFocusSession> = emptyList()
 )
 

@@ -1,6 +1,7 @@
 package com.example.habitly.ui.screens
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +51,11 @@ import com.example.habitly.ui.statistics.DailyFocusStat
 import com.example.habitly.ui.statistics.RecentFocusSession
 import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
+import com.example.habitly.ui.statistics.StudyHeatmapCalculator
+import com.example.habitly.ui.statistics.StudyHeatmapDay
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.min
 
 @Composable
 fun StatisticsScreen(modifier: Modifier = Modifier) {
@@ -126,10 +137,158 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
             dailyStats = uiState.dailyFocusStats
         )
 
+        StudyHeatmapCard(days = uiState.studyHeatmap)
+
         RecentSessionsCard(
             sessions = uiState.recentSessions,
             onDeleteSession = viewModel::deleteSession
         )
+    }
+}
+
+@Composable
+private fun StudyHeatmapCard(
+    days: List<StudyHeatmapDay>,
+    modifier: Modifier = Modifier
+) {
+    var selectedDay by remember(days) {
+        mutableStateOf(days.lastOrNull { day -> !day.isFuture })
+    }
+    val primary = MaterialTheme.colorScheme.primary
+    val emptyColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    val futureColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f)
+    val maxMinutes = days
+        .filterNot { day -> day.isFuture }
+        .maxOfOrNull { day -> day.focusMinutes }
+        ?.coerceAtLeast(1)
+        ?: 1
+    val dayFormatter = remember {
+        DateTimeFormatter.ofPattern("EEE, MMM d", Locale.getDefault())
+    }
+
+    HabitlyCard(modifier = modifier) {
+        Text(
+            text = "Study heatmap",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Your focus rhythm across the last 8 weeks. Tap a day for details.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            listOf("M", "T", "W", "T", "F", "S", "S").forEach { label ->
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(176.dp)
+                .pointerInput(days) {
+                    detectTapGestures { tapOffset ->
+                        if (days.size != StudyHeatmapCalculator.DAYS_TO_SHOW) {
+                            return@detectTapGestures
+                        }
+                        val column = (tapOffset.x / (size.width / 7f)).toInt()
+                        val row = (tapOffset.y / (size.height / 8f)).toInt()
+                        val index = row * 7 + column
+                        days.getOrNull(index)
+                            ?.takeUnless { day -> day.isFuture }
+                            ?.let { day -> selectedDay = day }
+                    }
+                }
+        ) {
+            if (days.size != StudyHeatmapCalculator.DAYS_TO_SHOW) return@Canvas
+
+            val columns = 7
+            val rows = 8
+            val gap = 4.dp.toPx()
+            val slotWidth = size.width / columns
+            val slotHeight = size.height / rows
+            val squareSize = min(slotWidth, slotHeight) - gap
+
+            days.forEachIndexed { index, day ->
+                val column = index % columns
+                val row = index / columns
+                val intensity = day.focusMinutes / maxMinutes.toFloat()
+                val cellColor = when {
+                    day.isFuture -> futureColor
+                    day.focusMinutes == 0 -> emptyColor
+                    intensity <= 0.25f -> primary.copy(alpha = 0.28f)
+                    intensity <= 0.50f -> primary.copy(alpha = 0.48f)
+                    intensity <= 0.75f -> primary.copy(alpha = 0.70f)
+                    else -> primary
+                }
+                val left = column * slotWidth + (slotWidth - squareSize) / 2f
+                val top = row * slotHeight + (slotHeight - squareSize) / 2f
+
+                drawRoundRect(
+                    color = cellColor,
+                    topLeft = Offset(left, top),
+                    size = Size(squareSize, squareSize),
+                    cornerRadius = CornerRadius(4.dp.toPx())
+                )
+            }
+        }
+
+        selectedDay?.let { day ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = day.date.format(dayFormatter),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "${day.focusMinutes} focus min",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (day.focusMinutes > 0) primary else Color.Unspecified,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Less",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            listOf(0.16f, 0.32f, 0.52f, 0.74f, 1f).forEach { alpha ->
+                Canvas(modifier = Modifier.padding(start = 5.dp).size(12.dp)) {
+                    drawRoundRect(
+                        color = primary.copy(alpha = alpha),
+                        cornerRadius = CornerRadius(3.dp.toPx())
+                    )
+                }
+            }
+            Text(
+                text = "More",
+                modifier = Modifier.padding(start = 5.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

@@ -36,6 +36,13 @@ class StatisticsViewModel(
                 studyDates = sessionDates,
                 today = today
             )
+            val focusMinutesByDate = sessions
+                .zip(sessionDates)
+                .groupBy(
+                    keySelector = { (_, date) -> date },
+                    valueTransform = { (session, _) -> session.durationMinutes }
+                )
+                .mapValues { (_, durations) -> durations.sum() }
 
             StatisticsUiState(
                 totalTasks = tasks.size,
@@ -56,6 +63,10 @@ class StatisticsViewModel(
                             durationMinutes = session.durationMinutes
                         )
                     }
+                ),
+                studyHeatmap = StudyHeatmapCalculator.build(
+                    focusMinutesByDate = focusMinutesByDate,
+                    today = today
                 ),
                 recentSessions = buildRecentSessions(
                     sessions = sessions.map { session ->
