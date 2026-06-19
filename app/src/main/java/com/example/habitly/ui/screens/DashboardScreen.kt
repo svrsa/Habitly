@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.TaskAlt
@@ -47,7 +48,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
     )
     val uiState by viewModel.uiState.collectAsState()
     val studyGoalMinutes = 120
-    val goalProgress = (uiState.totalFocusMinutes / studyGoalMinutes.toFloat()).coerceIn(0f, 1f)
+    val goalProgress = (uiState.todayFocusMinutes / studyGoalMinutes.toFloat()).coerceIn(0f, 1f)
     val goalPercent = (goalProgress * 100).toInt()
     val greeting = rememberGreeting()
 
@@ -75,7 +76,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${uiState.totalFocusMinutes} min",
+                            text = "${uiState.todayFocusMinutes} min",
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -128,7 +129,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                 }
 
                 Text(
-                    text = if (uiState.totalFocusMinutes == 0) {
+                    text = if (uiState.todayFocusMinutes == 0) {
                         "Start with one focused block. Keep it small and finish strong."
                     } else {
                         "Good rhythm. Add one more focused block when you are ready."
@@ -136,6 +137,61 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+
+        HabitlyCard(
+            contentPadding = PaddingValues(18.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocalFireDepartment,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(26.dp)
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(
+                        text = "Learning streak",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (uiState.currentStreakDays == 0) {
+                            "Complete a focus session to start your streak."
+                        } else {
+                            "${uiState.currentStreakDays} days in a row"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Best",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${uiState.longestStreakDays} days",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 

@@ -6,6 +6,9 @@ data class StatisticsUiState(
     val openTasks: Int = 0,
     val totalSessions: Int = 0,
     val totalFocusMinutes: Int = 0,
+    val todayFocusMinutes: Int = 0,
+    val currentStreakDays: Int = 0,
+    val longestStreakDays: Int = 0,
     val dailyFocusStats: List<DailyFocusStat> = emptyList(),
     val recentSessions: List<RecentFocusSession> = emptyList()
 )
