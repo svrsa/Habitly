@@ -35,6 +35,8 @@ import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
+import com.example.habitly.ui.settings.SettingsViewModel
+import com.example.habitly.ui.settings.SettingsViewModelFactory
 import java.time.LocalTime
 
 @Composable
@@ -47,7 +49,11 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
         )
     )
     val uiState by viewModel.uiState.collectAsState()
-    val studyGoalMinutes = 120
+    val settingsViewModel: SettingsViewModel = viewModel(
+        factory = SettingsViewModelFactory(application.settingsRepository)
+    )
+    val settingsUiState by settingsViewModel.uiState.collectAsState()
+    val studyGoalMinutes = settingsUiState.dailyStudyGoalMinutes
     val goalProgress = (uiState.todayFocusMinutes / studyGoalMinutes.toFloat()).coerceIn(0f, 1f)
     val goalPercent = (goalProgress * 100).toInt()
     val greeting = rememberGreeting()

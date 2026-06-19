@@ -38,6 +38,8 @@ class SettingsRepository(
                 defaultFocusDurationMinutes =
                     preferences[DEFAULT_FOCUS_DURATION_KEY]
                         ?: SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES,
+                dailyStudyGoalMinutes = preferences[DAILY_STUDY_GOAL_KEY]
+                    ?: SettingsUiState.DEFAULT_DAILY_STUDY_GOAL_MINUTES,
                 isDailyReminderEnabled =
                     preferences[DAILY_REMINDER_ENABLED_KEY] ?: false,
                 reminderHour = preferences[REMINDER_HOUR_KEY]
@@ -61,6 +63,20 @@ class SettingsRepository(
         }
     }
 
+    suspend fun setDailyStudyGoal(minutes: Int) {
+        require(
+            minutes in SettingsUiState.MIN_DAILY_STUDY_GOAL_MINUTES..
+                SettingsUiState.MAX_DAILY_STUDY_GOAL_MINUTES
+        ) { "Daily study goal is outside the supported range" }
+        require(
+            minutes % SettingsUiState.DAILY_STUDY_GOAL_STEP_MINUTES == 0
+        ) { "Daily study goal must use 15-minute steps" }
+
+        dataStore.edit { preferences ->
+            preferences[DAILY_STUDY_GOAL_KEY] = minutes
+        }
+    }
+
     suspend fun setDailyReminderTime(hour: Int, minute: Int) {
         require(hour in 0..23) { "Reminder hour must be between 0 and 23" }
         require(minute in 0..59) { "Reminder minute must be between 0 and 59" }
@@ -73,6 +89,7 @@ class SettingsRepository(
 
     private companion object {
         val DEFAULT_FOCUS_DURATION_KEY = intPreferencesKey("default_focus_duration_minutes")
+        val DAILY_STUDY_GOAL_KEY = intPreferencesKey("daily_study_goal_minutes")
         val DAILY_REMINDER_ENABLED_KEY = booleanPreferencesKey("daily_reminder_enabled")
         val REMINDER_HOUR_KEY = intPreferencesKey("reminder_hour")
         val REMINDER_MINUTE_KEY = intPreferencesKey("reminder_minute")
