@@ -29,6 +29,12 @@ class SettingsViewModel(
         }
     }
 
+    fun setDailyStudyGoal(minutes: Int) {
+        viewModelScope.launch {
+            settingsRepository.setDailyStudyGoal(minutes)
+        }
+    }
+
     fun setDailyReminderTime(hour: Int, minute: Int) {
         viewModelScope.launch {
             settingsRepository.setDailyReminderTime(hour, minute)
