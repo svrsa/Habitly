@@ -39,7 +39,11 @@ class SettingsRepository(
                     preferences[DEFAULT_FOCUS_DURATION_KEY]
                         ?: SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES,
                 isDailyReminderEnabled =
-                    preferences[DAILY_REMINDER_ENABLED_KEY] ?: false
+                    preferences[DAILY_REMINDER_ENABLED_KEY] ?: false,
+                reminderHour = preferences[REMINDER_HOUR_KEY]
+                    ?: SettingsUiState.DEFAULT_REMINDER_HOUR,
+                reminderMinute = preferences[REMINDER_MINUTE_KEY]
+                    ?: SettingsUiState.DEFAULT_REMINDER_MINUTE
             )
         }
 
@@ -57,8 +61,20 @@ class SettingsRepository(
         }
     }
 
+    suspend fun setDailyReminderTime(hour: Int, minute: Int) {
+        require(hour in 0..23) { "Reminder hour must be between 0 and 23" }
+        require(minute in 0..59) { "Reminder minute must be between 0 and 59" }
+
+        dataStore.edit { preferences ->
+            preferences[REMINDER_HOUR_KEY] = hour
+            preferences[REMINDER_MINUTE_KEY] = minute
+        }
+    }
+
     private companion object {
         val DEFAULT_FOCUS_DURATION_KEY = intPreferencesKey("default_focus_duration_minutes")
         val DAILY_REMINDER_ENABLED_KEY = booleanPreferencesKey("daily_reminder_enabled")
+        val REMINDER_HOUR_KEY = intPreferencesKey("reminder_hour")
+        val REMINDER_MINUTE_KEY = intPreferencesKey("reminder_minute")
     }
 }

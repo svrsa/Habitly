@@ -28,4 +28,10 @@ class SettingsViewModel(
             settingsRepository.setDailyReminderEnabled(isEnabled)
         }
     }
+
+    fun setDailyReminderTime(hour: Int, minute: Int) {
+        viewModelScope.launch {
+            settingsRepository.setDailyReminderTime(hour, minute)
+        }
+    }
 }
