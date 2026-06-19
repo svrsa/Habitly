@@ -25,6 +25,17 @@ class StatisticsViewModel(
             sessionRepository.allSessions
         ) { tasks, sessions ->
             val completedTasks = tasks.count { task -> task.isCompleted }
+            val zoneId = ZoneId.systemDefault()
+            val today = LocalDate.now(zoneId)
+            val sessionDates = sessions.map { session ->
+                Instant.ofEpochMilli(session.completedAt)
+                    .atZone(zoneId)
+                    .toLocalDate()
+            }
+            val streak = LearningStreakCalculator.calculate(
+                studyDates = sessionDates,
+                today = today
+            )
 
             StatisticsUiState(
                 totalTasks = tasks.size,
@@ -32,6 +43,11 @@ class StatisticsViewModel(
                 openTasks = tasks.size - completedTasks,
                 totalSessions = sessions.size,
                 totalFocusMinutes = sessions.sumOf { session -> session.durationMinutes },
+                todayFocusMinutes = sessions
+                    .filterIndexed { index, _ -> sessionDates[index] == today }
+                    .sumOf { session -> session.durationMinutes },
+                currentStreakDays = streak.currentDays,
+                longestStreakDays = streak.longestDays,
                 dailyFocusStats = buildDailyFocusStats(
                     sessions = sessions.map { session ->
                         SessionDate(

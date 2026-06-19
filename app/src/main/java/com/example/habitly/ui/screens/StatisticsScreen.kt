@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
@@ -96,6 +98,26 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
                 value = "${uiState.completedTasks}",
                 subtitle = "completed",
                 icon = Icons.Outlined.CheckCircle,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            MetricCard(
+                title = "Current streak",
+                value = "${uiState.currentStreakDays}",
+                subtitle = "days",
+                icon = Icons.Outlined.LocalFireDepartment,
+                modifier = Modifier.weight(1f)
+            )
+            MetricCard(
+                title = "Best streak",
+                value = "${uiState.longestStreakDays}",
+                subtitle = "days",
+                icon = Icons.Outlined.EmojiEvents,
                 modifier = Modifier.weight(1f)
             )
         }
