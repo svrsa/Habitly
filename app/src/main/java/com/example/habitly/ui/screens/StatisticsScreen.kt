@@ -54,6 +54,7 @@ import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 import com.example.habitly.ui.statistics.StudyHeatmapCalculator
 import com.example.habitly.ui.statistics.StudyHeatmapDay
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.min
@@ -157,6 +158,8 @@ private fun StudyHeatmapCard(
     }
     val primary = MaterialTheme.colorScheme.primary
     val selectionBorderColor = MaterialTheme.colorScheme.onSurface
+    val todayMarkerOuterColor = MaterialTheme.colorScheme.surface
+    val today = LocalDate.now()
     val emptyColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
     val futureColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f)
     val maxMinutes = days
@@ -250,6 +253,22 @@ private fun StudyHeatmapCard(
                         size = Size(squareSize, squareSize),
                         cornerRadius = CornerRadius(4.dp.toPx()),
                         style = Stroke(width = 2.5.dp.toPx())
+                    )
+                }
+                if (day.date == today) {
+                    val markerCenter = Offset(
+                        x = left + squareSize - 5.dp.toPx(),
+                        y = top + 5.dp.toPx()
+                    )
+                    drawCircle(
+                        color = todayMarkerOuterColor,
+                        radius = 4.dp.toPx(),
+                        center = markerCenter
+                    )
+                    drawCircle(
+                        color = primary,
+                        radius = 2.4.dp.toPx(),
+                        center = markerCenter
                     )
                 }
             }
