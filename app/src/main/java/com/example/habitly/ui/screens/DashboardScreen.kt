@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
+import com.example.habitly.ui.format.formatFocusDuration
 import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 import com.example.habitly.ui.settings.SettingsViewModel
@@ -82,7 +83,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${uiState.todayFocusMinutes} min",
+                            text = formatFocusDuration(uiState.todayFocusMinutes),
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -128,7 +129,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                         trackColor = MaterialTheme.colorScheme.primaryContainer
                     )
                     Text(
-                        text = "$studyGoalMinutes minutes study goal",
+                        text = "${formatFocusDuration(studyGoalMinutes)} study goal",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

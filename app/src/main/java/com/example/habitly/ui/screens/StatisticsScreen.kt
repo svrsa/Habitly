@@ -48,6 +48,7 @@ import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.components.MetricCard
+import com.example.habitly.ui.format.formatFocusDuration
 import com.example.habitly.ui.statistics.DailyFocusStat
 import com.example.habitly.ui.statistics.RecentFocusSession
 import com.example.habitly.ui.statistics.StatisticsViewModel
@@ -81,8 +82,8 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
         ) {
             MetricCard(
                 title = "Focus time",
-                value = "${uiState.totalFocusMinutes}",
-                subtitle = "minutes",
+                value = formatFocusDuration(uiState.totalFocusMinutes),
+                subtitle = "total",
                 icon = Icons.Outlined.PlayArrow,
                 modifier = Modifier.weight(1f)
             )
@@ -286,7 +287,7 @@ private fun StudyHeatmapCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "${day.focusMinutes} focus min",
+                    text = formatFocusDuration(day.focusMinutes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (day.focusMinutes > 0) primary else Color.Unspecified,
                     fontWeight = FontWeight.SemiBold
@@ -472,7 +473,7 @@ private fun RecentSessionsCard(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "${session.durationMinutes} min",
+                            text = formatFocusDuration(session.durationMinutes),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -515,7 +516,7 @@ private fun RecentSessionsCard(
             },
             text = {
                 Text(
-                    text = "This will remove the ${session.durationMinutes} min focus session from your history."
+                    text = "This will remove the ${formatFocusDuration(session.durationMinutes)} focus session from your history."
                 )
             },
             confirmButton = {

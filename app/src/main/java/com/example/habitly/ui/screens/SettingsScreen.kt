@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberTimePickerState
 import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
+import com.example.habitly.ui.format.formatFocusDuration
 import com.example.habitly.ui.settings.SettingsViewModel
 import com.example.habitly.ui.settings.SettingsViewModelFactory
 import com.example.habitly.ui.settings.SettingsUiState
@@ -146,7 +147,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     )
                 }
                 Text(
-                    text = "$dailyGoalDraft min",
+                    text = formatFocusDuration(dailyGoalDraft),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
