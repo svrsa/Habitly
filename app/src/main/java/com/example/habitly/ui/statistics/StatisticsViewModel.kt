@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyTaskRepository
+import com.example.habitly.data.repository.StudyEvidenceRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,7 +18,8 @@ import java.util.Locale
 
 class StatisticsViewModel(
     taskRepository: StudyTaskRepository,
-    private val sessionRepository: StudySessionRepository
+    private val sessionRepository: StudySessionRepository,
+    private val evidenceRepository: StudyEvidenceRepository
 ) : ViewModel() {
     val uiState: StateFlow<StatisticsUiState> =
         combine(
@@ -140,6 +142,7 @@ class StatisticsViewModel(
 
     fun deleteSession(sessionId: Long) {
         viewModelScope.launch {
+            evidenceRepository.deleteFilesForSession(sessionId)
             sessionRepository.deleteSession(sessionId)
         }
     }

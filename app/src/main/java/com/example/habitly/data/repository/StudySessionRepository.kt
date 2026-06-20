@@ -9,13 +9,13 @@ class StudySessionRepository(
 ) {
     val allSessions: Flow<List<StudySessionEntity>> = studySessionDao.getAllSessions()
 
-    suspend fun addSession(durationMinutes: Int, planEntryId: Long? = null) {
+    suspend fun addSession(durationMinutes: Int, planEntryId: Long? = null): Long {
         val session = StudySessionEntity(
             durationMinutes = durationMinutes,
             planEntryId = planEntryId
         )
 
-        studySessionDao.insertSession(session)
+        return studySessionDao.insertSession(session)
     }
 
     suspend fun deleteSession(sessionId: Long) {

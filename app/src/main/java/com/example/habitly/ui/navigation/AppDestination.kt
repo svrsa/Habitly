@@ -5,6 +5,8 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,6 +23,16 @@ enum class AppDestination(
     Planner(
         title = "Planner",
         icon = Icons.Outlined.CalendarMonth,
+        showInBottomBar = false
+    ),
+    EvidenceCapture(
+        title = "Camera",
+        icon = Icons.Outlined.PhotoCamera,
+        showInBottomBar = false
+    ),
+    Journal(
+        title = "Journal",
+        icon = Icons.Outlined.Collections,
         showInBottomBar = false
     ),
     Tasks(

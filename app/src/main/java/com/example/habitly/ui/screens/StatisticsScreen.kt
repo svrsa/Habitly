@@ -18,7 +18,9 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,21 +57,31 @@ import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 import com.example.habitly.ui.statistics.StudyHeatmapCalculator
 import com.example.habitly.ui.statistics.StudyHeatmapDay
+import com.example.habitly.ui.evidence.EvidenceViewModel
+import com.example.habitly.ui.evidence.EvidenceViewModelFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.min
 
 @Composable
-fun StatisticsScreen(modifier: Modifier = Modifier) {
+fun StatisticsScreen(
+    modifier: Modifier = Modifier,
+    onOpenJournal: () -> Unit = {}
+) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: StatisticsViewModel = viewModel(
         factory = StatisticsViewModelFactory(
             taskRepository = application.studyTaskRepository,
-            sessionRepository = application.studySessionRepository
+            sessionRepository = application.studySessionRepository,
+            evidenceRepository = application.studyEvidenceRepository
         )
     )
     val uiState by viewModel.uiState.collectAsState()
+    val evidenceViewModel: EvidenceViewModel = viewModel(
+        factory = EvidenceViewModelFactory(application.studyEvidenceRepository)
+    )
+    val evidenceUiState by evidenceViewModel.uiState.collectAsState()
 
     HabitlyScreen(
         title = "Statistics",
@@ -141,6 +153,30 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
         )
 
         StudyHeatmapCard(days = uiState.studyHeatmap)
+
+        HabitlyCard {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Outlined.Collections, contentDescription = null)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Study journal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (evidenceUiState.evidence.isEmpty()) {
+                            "Add a photo after a focus session."
+                        } else {
+                            "${evidenceUiState.evidence.size} study snapshots saved"
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Button(onClick = onOpenJournal, modifier = Modifier.fillMaxWidth()) {
+                Text("Open study journal")
+            }
+        }
 
         RecentSessionsCard(
             sessions = uiState.recentSessions,
