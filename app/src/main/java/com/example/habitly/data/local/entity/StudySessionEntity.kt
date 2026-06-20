@@ -8,5 +8,6 @@ data class StudySessionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val durationMinutes: Int,
+    val planEntryId: Long? = null,
     val completedAt: Long = System.currentTimeMillis()
 )

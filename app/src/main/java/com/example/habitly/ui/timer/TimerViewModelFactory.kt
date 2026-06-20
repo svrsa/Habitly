@@ -5,10 +5,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
+import com.example.habitly.data.repository.StudyPlanRepository
+import com.example.habitly.ui.planner.PlannedFocusRequest
 
 class TimerViewModelFactory(
     private val sessionRepository: StudySessionRepository,
-    private val settingsRepository: SettingsRepository
+    private val planRepository: StudyPlanRepository,
+    private val settingsRepository: SettingsRepository,
+    private val plannedFocusRequest: PlannedFocusRequest?
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(
         modelClass: Class<T>,
@@ -18,7 +22,9 @@ class TimerViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return TimerViewModel(
                 sessionRepository = sessionRepository,
-                settingsRepository = settingsRepository
+                planRepository = planRepository,
+                settingsRepository = settingsRepository,
+                plannedFocusRequest = plannedFocusRequest
             ) as T
         }
 
