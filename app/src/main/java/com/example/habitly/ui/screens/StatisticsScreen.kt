@@ -38,6 +38,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -155,6 +156,7 @@ private fun StudyHeatmapCard(
         mutableStateOf(days.lastOrNull { day -> !day.isFuture })
     }
     val primary = MaterialTheme.colorScheme.primary
+    val selectionBorderColor = MaterialTheme.colorScheme.onSurface
     val emptyColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
     val futureColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f)
     val maxMinutes = days
@@ -241,6 +243,15 @@ private fun StudyHeatmapCard(
                     size = Size(squareSize, squareSize),
                     cornerRadius = CornerRadius(4.dp.toPx())
                 )
+                if (selectedDay?.date == day.date) {
+                    drawRoundRect(
+                        color = selectionBorderColor,
+                        topLeft = Offset(left, top),
+                        size = Size(squareSize, squareSize),
+                        cornerRadius = CornerRadius(4.dp.toPx()),
+                        style = Stroke(width = 2.5.dp.toPx())
+                    )
+                }
             }
         }
 
