@@ -53,3 +53,26 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         )
     }
 }
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS study_evidence (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                sessionId INTEGER NOT NULL,
+                imagePath TEXT NOT NULL,
+                note TEXT NOT NULL DEFAULT '',
+                createdAt INTEGER NOT NULL,
+                FOREIGN KEY(sessionId) REFERENCES study_sessions(id) ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        connection.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_study_evidence_sessionId ON study_evidence(sessionId)"
+        )
+        connection.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_study_evidence_createdAt ON study_evidence(createdAt)"
+        )
+    }
+}

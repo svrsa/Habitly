@@ -52,7 +52,8 @@ fun DashboardScreen(
     val viewModel: StatisticsViewModel = viewModel(
         factory = StatisticsViewModelFactory(
             taskRepository = application.studyTaskRepository,
-            sessionRepository = application.studySessionRepository
+            sessionRepository = application.studySessionRepository,
+            evidenceRepository = application.studyEvidenceRepository
         )
     )
     val uiState by viewModel.uiState.collectAsState()

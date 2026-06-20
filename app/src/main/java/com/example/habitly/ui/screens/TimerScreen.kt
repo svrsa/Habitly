@@ -35,7 +35,8 @@ import com.example.habitly.ui.planner.PlannedFocusRequest
 @Composable
 fun TimerScreen(
     modifier: Modifier = Modifier,
-    plannedFocusRequest: PlannedFocusRequest? = null
+    plannedFocusRequest: PlannedFocusRequest? = null,
+    onAddEvidence: (Long) -> Unit = {}
 ) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: TimerViewModel = viewModel(
@@ -66,6 +67,22 @@ fun TimerScreen(
         subtitle = statusText,
         modifier = modifier
     ) {
+        uiState.lastSavedSessionId?.let { sessionId ->
+            HabitlyCard {
+                Text("Session complete", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Capture your notes or solved exercises as a study snapshot.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = { onAddEvidence(sessionId) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Add study snapshot")
+                }
+            }
+        }
+
         uiState.activeTaskTitle?.let { taskTitle ->
             HabitlyCard {
                 Text("Planned focus", style = MaterialTheme.typography.labelLarge)

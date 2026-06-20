@@ -12,7 +12,7 @@ interface StudySessionDao {
     fun getAllSessions(): Flow<List<StudySessionEntity>>
 
     @Insert
-    suspend fun insertSession(session: StudySessionEntity)
+    suspend fun insertSession(session: StudySessionEntity): Long
 
     @Query("DELETE FROM study_sessions WHERE id = :sessionId")
     suspend fun deleteSession(sessionId: Long)

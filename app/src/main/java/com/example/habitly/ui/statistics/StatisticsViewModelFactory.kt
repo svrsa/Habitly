@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyTaskRepository
+import com.example.habitly.data.repository.StudyEvidenceRepository
 
 class StatisticsViewModelFactory(
     private val taskRepository: StudyTaskRepository,
-    private val sessionRepository: StudySessionRepository
+    private val sessionRepository: StudySessionRepository,
+    private val evidenceRepository: StudyEvidenceRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(
         modelClass: Class<T>,
@@ -18,7 +20,8 @@ class StatisticsViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return StatisticsViewModel(
                 taskRepository = taskRepository,
-                sessionRepository = sessionRepository
+                sessionRepository = sessionRepository,
+                evidenceRepository = evidenceRepository
             ) as T
         }
 

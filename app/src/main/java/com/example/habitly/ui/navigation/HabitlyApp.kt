@@ -22,6 +22,8 @@ import com.example.habitly.ui.screens.PlannerScreen
 import com.example.habitly.ui.screens.StatisticsScreen
 import com.example.habitly.ui.screens.TasksScreen
 import com.example.habitly.ui.screens.TimerScreen
+import com.example.habitly.ui.screens.EvidenceCaptureScreen
+import com.example.habitly.ui.screens.EvidenceJournalScreen
 import com.example.habitly.ui.planner.PlannedFocusRequest
 
 @Composable
@@ -30,18 +32,21 @@ fun HabitlyApp() {
         mutableStateOf(AppDestination.Dashboard)
     }
     var plannedFocusRequest by remember { mutableStateOf<PlannedFocusRequest?>(null) }
+    var evidenceSessionId by remember { mutableStateOf<Long?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            HabitlyBottomBar(
-                selectedDestination = selectedDestination,
-                onDestinationSelected = {
-                    if (it == AppDestination.Timer) plannedFocusRequest = null
-                    selectedDestination = it
-                }
-            )
+            if (selectedDestination != AppDestination.EvidenceCapture) {
+                HabitlyBottomBar(
+                    selectedDestination = selectedDestination,
+                    onDestinationSelected = {
+                        if (it == AppDestination.Timer) plannedFocusRequest = null
+                        selectedDestination = it
+                    }
+                )
+            }
         }
     ) { innerPadding ->
         val screenModifier = Modifier
@@ -63,9 +68,28 @@ fun HabitlyApp() {
             AppDestination.Tasks -> TasksScreen(screenModifier)
             AppDestination.Timer -> TimerScreen(
                 modifier = screenModifier,
-                plannedFocusRequest = plannedFocusRequest
+                plannedFocusRequest = plannedFocusRequest,
+                onAddEvidence = { sessionId ->
+                    evidenceSessionId = sessionId
+                    selectedDestination = AppDestination.EvidenceCapture
+                }
             )
-            AppDestination.Statistics -> StatisticsScreen(screenModifier)
+            AppDestination.EvidenceCapture -> evidenceSessionId?.let { sessionId ->
+                EvidenceCaptureScreen(
+                    sessionId = sessionId,
+                    modifier = screenModifier,
+                    onSaved = { selectedDestination = AppDestination.Journal },
+                    onCancel = { selectedDestination = AppDestination.Timer }
+                )
+            } ?: run { selectedDestination = AppDestination.Timer }
+            AppDestination.Journal -> EvidenceJournalScreen(
+                modifier = screenModifier,
+                onBack = { selectedDestination = AppDestination.Statistics }
+            )
+            AppDestination.Statistics -> StatisticsScreen(
+                modifier = screenModifier,
+                onOpenJournal = { selectedDestination = AppDestination.Journal }
+            )
             AppDestination.Settings -> SettingsScreen(screenModifier)
         }
     }

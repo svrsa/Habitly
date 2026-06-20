@@ -7,10 +7,13 @@ import com.example.habitly.data.local.HabitlyDatabase
 import com.example.habitly.data.local.MIGRATION_1_2
 import com.example.habitly.data.local.MIGRATION_2_3
 import com.example.habitly.data.local.MIGRATION_3_4
+import com.example.habitly.data.local.MIGRATION_4_5
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyPlanRepository
 import com.example.habitly.data.repository.StudyTaskRepository
+import com.example.habitly.data.repository.EvidenceFileStore
+import com.example.habitly.data.repository.StudyEvidenceRepository
 import com.example.habitly.notifications.StudyReminderManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +30,7 @@ class HabitlyApplication : Application() {
             applicationContext,
             HabitlyDatabase::class.java,
             HABITLY_DATABASE_NAME
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
     }
 
     val studyTaskRepository: StudyTaskRepository by lazy {
@@ -44,6 +47,13 @@ class HabitlyApplication : Application() {
 
     val studyPlanRepository: StudyPlanRepository by lazy {
         StudyPlanRepository(database.studyPlanDao())
+    }
+
+    val studyEvidenceRepository: StudyEvidenceRepository by lazy {
+        StudyEvidenceRepository(
+            database.studyEvidenceDao(),
+            EvidenceFileStore(applicationContext)
+        )
     }
 
     val studyReminderManager: StudyReminderManager by lazy {

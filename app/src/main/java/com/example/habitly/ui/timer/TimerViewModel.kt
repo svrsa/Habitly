@@ -146,12 +146,12 @@ class TimerViewModel(
         }
 
         val activePlanId = _uiState.value.activePlanId
-        sessionRepository.addSession(durationMinutes, activePlanId)
+        val sessionId = sessionRepository.addSession(durationMinutes, activePlanId)
         if (activePlanId != null) {
             planRepository.completeNextBlock(activePlanId)
         }
         _uiState.update { state ->
-            state.copy(wasSessionSaved = true)
+            state.copy(wasSessionSaved = true, lastSavedSessionId = sessionId)
         }
     }
 
