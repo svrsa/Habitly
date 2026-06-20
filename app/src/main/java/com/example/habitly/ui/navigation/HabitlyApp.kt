@@ -12,20 +12,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.habitly.ui.screens.DashboardScreen
 import com.example.habitly.ui.screens.SettingsScreen
+import com.example.habitly.ui.screens.PlannerScreen
 import com.example.habitly.ui.screens.StatisticsScreen
 import com.example.habitly.ui.screens.TasksScreen
 import com.example.habitly.ui.screens.TimerScreen
+import com.example.habitly.ui.planner.PlannedFocusRequest
 
 @Composable
 fun HabitlyApp() {
     var selectedDestination by rememberSaveable {
         mutableStateOf(AppDestination.Dashboard)
     }
+    var plannedFocusRequest by remember { mutableStateOf<PlannedFocusRequest?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -33,7 +37,10 @@ fun HabitlyApp() {
         bottomBar = {
             HabitlyBottomBar(
                 selectedDestination = selectedDestination,
-                onDestinationSelected = { selectedDestination = it }
+                onDestinationSelected = {
+                    if (it == AppDestination.Timer) plannedFocusRequest = null
+                    selectedDestination = it
+                }
             )
         }
     ) { innerPadding ->
@@ -42,9 +49,22 @@ fun HabitlyApp() {
             .padding(innerPadding)
 
         when (selectedDestination) {
-            AppDestination.Dashboard -> DashboardScreen(screenModifier)
+            AppDestination.Dashboard -> DashboardScreen(
+                modifier = screenModifier,
+                onOpenPlanner = { selectedDestination = AppDestination.Planner }
+            )
+            AppDestination.Planner -> PlannerScreen(
+                modifier = screenModifier,
+                onStartFocus = { request ->
+                    plannedFocusRequest = request
+                    selectedDestination = AppDestination.Timer
+                }
+            )
             AppDestination.Tasks -> TasksScreen(screenModifier)
-            AppDestination.Timer -> TimerScreen(screenModifier)
+            AppDestination.Timer -> TimerScreen(
+                modifier = screenModifier,
+                plannedFocusRequest = plannedFocusRequest
+            )
             AppDestination.Statistics -> StatisticsScreen(screenModifier)
             AppDestination.Settings -> SettingsScreen(screenModifier)
         }
@@ -60,7 +80,8 @@ private fun HabitlyBottomBar(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        AppDestination.entries.forEach { destination ->
+        AppDestination.entries.filter { destination -> destination.showInBottomBar }
+            .forEach { destination ->
             NavigationBarItem(
                 selected = destination == selectedDestination,
                 onClick = { onDestinationSelected(destination) },

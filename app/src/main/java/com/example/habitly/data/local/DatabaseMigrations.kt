@@ -25,3 +25,31 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
     }
 }
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            "ALTER TABLE study_sessions ADD COLUMN planEntryId INTEGER DEFAULT NULL"
+        )
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS study_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                taskId INTEGER NOT NULL,
+                plannedDate INTEGER NOT NULL,
+                blockDurationMinutes INTEGER NOT NULL,
+                plannedBlocks INTEGER NOT NULL,
+                completedBlocks INTEGER NOT NULL DEFAULT 0,
+                createdAt INTEGER NOT NULL,
+                FOREIGN KEY(taskId) REFERENCES study_tasks(id) ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        connection.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_study_plans_taskId ON study_plans(taskId)"
+        )
+        connection.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_study_plans_plannedDate ON study_plans(plannedDate)"
+        )
+    }
+}

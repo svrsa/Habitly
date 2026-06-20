@@ -6,8 +6,10 @@ import com.example.habitly.data.local.HABITLY_DATABASE_NAME
 import com.example.habitly.data.local.HabitlyDatabase
 import com.example.habitly.data.local.MIGRATION_1_2
 import com.example.habitly.data.local.MIGRATION_2_3
+import com.example.habitly.data.local.MIGRATION_3_4
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
+import com.example.habitly.data.repository.StudyPlanRepository
 import com.example.habitly.data.repository.StudyTaskRepository
 import com.example.habitly.notifications.StudyReminderManager
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +27,7 @@ class HabitlyApplication : Application() {
             applicationContext,
             HabitlyDatabase::class.java,
             HABITLY_DATABASE_NAME
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
     }
 
     val studyTaskRepository: StudyTaskRepository by lazy {
@@ -38,6 +40,10 @@ class HabitlyApplication : Application() {
 
     val settingsRepository: SettingsRepository by lazy {
         SettingsRepository(applicationContext)
+    }
+
+    val studyPlanRepository: StudyPlanRepository by lazy {
+        StudyPlanRepository(database.studyPlanDao())
     }
 
     val studyReminderManager: StudyReminderManager by lazy {

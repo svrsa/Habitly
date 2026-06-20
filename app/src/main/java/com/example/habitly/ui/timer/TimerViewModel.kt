@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
+import com.example.habitly.data.repository.StudyPlanRepository
+import com.example.habitly.ui.planner.PlannedFocusRequest
 import com.example.habitly.ui.settings.SettingsUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,12 +18,18 @@ import kotlinx.coroutines.launch
 
 class TimerViewModel(
     private val sessionRepository: StudySessionRepository,
-    settingsRepository: SettingsRepository
+    private val planRepository: StudyPlanRepository,
+    settingsRepository: SettingsRepository,
+    plannedFocusRequest: PlannedFocusRequest?
 ) : ViewModel() {
+    private val initialDurationMinutes = plannedFocusRequest?.blockDurationMinutes
+        ?: SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES
     private val _uiState = MutableStateFlow(
         TimerUiState(
-            selectedDurationMinutes = SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES,
-            remainingSeconds = SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES * 60
+            selectedDurationMinutes = initialDurationMinutes,
+            remainingSeconds = initialDurationMinutes * 60,
+            activePlanId = plannedFocusRequest?.planId,
+            activeTaskTitle = plannedFocusRequest?.taskTitle
         )
     )
     val uiState: StateFlow<TimerUiState> = _uiState
@@ -35,7 +43,7 @@ class TimerViewModel(
                 .distinctUntilChanged()
                 .collect { minutes ->
                     _uiState.update { state ->
-                        if (state.isRunning) {
+                        if (state.isRunning || state.activePlanId != null) {
                             state
                         } else {
                             state.copy(
@@ -137,7 +145,11 @@ class TimerViewModel(
             state.copy(isRunning = false)
         }
 
-        sessionRepository.addSession(durationMinutes)
+        val activePlanId = _uiState.value.activePlanId
+        sessionRepository.addSession(durationMinutes, activePlanId)
+        if (activePlanId != null) {
+            planRepository.completeNextBlock(activePlanId)
+        }
         _uiState.update { state ->
             state.copy(wasSessionSaved = true)
         }
@@ -152,7 +164,7 @@ class TimerViewModel(
         }
 
         val elapsedMinutes = (elapsedSeconds + 59) / 60
-        sessionRepository.addSession(elapsedMinutes)
+        sessionRepository.addSession(elapsedMinutes, state.activePlanId)
         return true
     }
 

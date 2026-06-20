@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,10 +39,15 @@ import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 import com.example.habitly.ui.settings.SettingsViewModel
 import com.example.habitly.ui.settings.SettingsViewModelFactory
+import com.example.habitly.ui.planner.PlannerViewModel
+import com.example.habitly.ui.planner.PlannerViewModelFactory
 import java.time.LocalTime
 
 @Composable
-fun DashboardScreen(modifier: Modifier = Modifier) {
+fun DashboardScreen(
+    modifier: Modifier = Modifier,
+    onOpenPlanner: () -> Unit = {}
+) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: StatisticsViewModel = viewModel(
         factory = StatisticsViewModelFactory(
@@ -54,6 +60,13 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
         factory = SettingsViewModelFactory(application.settingsRepository)
     )
     val settingsUiState by settingsViewModel.uiState.collectAsState()
+    val plannerViewModel: PlannerViewModel = viewModel(
+        factory = PlannerViewModelFactory(
+            application.studyPlanRepository,
+            application.studyTaskRepository
+        )
+    )
+    val plannerUiState by plannerViewModel.uiState.collectAsState()
     val studyGoalMinutes = settingsUiState.dailyStudyGoalMinutes
     val goalProgress = (uiState.todayFocusMinutes / studyGoalMinutes.toFloat()).coerceIn(0f, 1f)
     val goalPercent = (goalProgress * 100).toInt()
@@ -250,23 +263,30 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     )
                 }
                 Column(
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Study plan",
+                        text = "Today's plan",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = if (uiState.openTasks == 0) {
-                            "Your task list is clear. Add a study task or start a focus block."
+                        text = if (plannerUiState.todayEntries.isEmpty()) {
+                            "No focus blocks planned yet. Build a realistic plan for today."
                         } else {
-                            "Pick one open task, start a focus block, then check it off."
+                            "${plannerUiState.todayCompletedBlocks} of ${plannerUiState.todayTotalBlocks} blocks completed across ${plannerUiState.todayEntries.size} tasks."
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+            Button(
+                onClick = onOpenPlanner,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (plannerUiState.todayEntries.isEmpty()) "Create today's plan" else "Open planner")
             }
         }
     }

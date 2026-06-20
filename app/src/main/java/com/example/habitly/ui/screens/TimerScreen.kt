@@ -30,14 +30,21 @@ import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.timer.TimerViewModel
 import com.example.habitly.ui.timer.TimerViewModelFactory
+import com.example.habitly.ui.planner.PlannedFocusRequest
 
 @Composable
-fun TimerScreen(modifier: Modifier = Modifier) {
+fun TimerScreen(
+    modifier: Modifier = Modifier,
+    plannedFocusRequest: PlannedFocusRequest? = null
+) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: TimerViewModel = viewModel(
+        key = "timer-${plannedFocusRequest?.planId ?: "free"}",
         factory = TimerViewModelFactory(
             sessionRepository = application.studySessionRepository,
-            settingsRepository = application.settingsRepository
+            planRepository = application.studyPlanRepository,
+            settingsRepository = application.settingsRepository,
+            plannedFocusRequest = plannedFocusRequest
         )
     )
     val uiState by viewModel.uiState.collectAsState()
@@ -59,6 +66,17 @@ fun TimerScreen(modifier: Modifier = Modifier) {
         subtitle = statusText,
         modifier = modifier
     ) {
+        uiState.activeTaskTitle?.let { taskTitle ->
+            HabitlyCard {
+                Text("Planned focus", style = MaterialTheme.typography.labelLarge)
+                Text(taskTitle, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "Completing this timer finishes one planned block.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         HabitlyCard(
             contentPadding = PaddingValues(24.dp)
         ) {
