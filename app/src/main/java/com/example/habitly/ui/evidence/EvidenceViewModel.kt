@@ -59,6 +59,12 @@ class EvidenceViewModel(
         viewModelScope.launch { repository.deleteEvidence(evidence) }
     }
 
+    fun showError(message: String) {
+        operationState.update { state ->
+            state.copy(errorMessage = message)
+        }
+    }
+
     fun clearError() {
         operationState.update { state -> state.copy(errorMessage = null) }
     }
