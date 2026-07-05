@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -111,7 +113,10 @@ fun EvidenceCaptureScreen(
                         imageCapture = imageCapture,
                         file = file,
                         onSuccess = { pendingCapture = file },
-                        onFailure = { file.delete() }
+                        onFailure = {
+                            file.delete()
+                            viewModel.showError("Unable to capture photo. Please try again.")
+                        }
                     )
                 },
                 captureEnabled = !uiState.isSaving
@@ -161,6 +166,23 @@ fun EvidenceCaptureScreen(
                 color = Color.White
             )
         }
+    }
+
+    uiState.errorMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = viewModel::clearError,
+            title = {
+                Text(text = "Evidence error")
+            },
+            text = {
+                Text(text = message)
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::clearError) {
+                    Text(text = "OK")
+                }
+            }
+        )
     }
 }
 
