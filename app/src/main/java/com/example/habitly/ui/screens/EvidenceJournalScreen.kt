@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -115,6 +116,8 @@ private fun EvidenceCard(
                 modifier = Modifier.fillMaxWidth().aspectRatio(1f),
                 contentScale = ContentScale.Crop
             )
+        } else {
+            MissingEvidenceImagePlaceholder(label = label)
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -128,6 +131,36 @@ private fun EvidenceCard(
             IconButton(onClick = onDelete) {
                 Icon(Icons.Outlined.Delete, contentDescription = "Delete snapshot")
             }
+        }
+    }
+}
+
+@Composable
+private fun MissingEvidenceImagePlaceholder(label: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                Icons.Outlined.PhotoCamera,
+                contentDescription = null
+            )
+            Text(
+                text = "Snapshot unavailable",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
