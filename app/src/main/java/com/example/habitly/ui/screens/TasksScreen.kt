@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,12 +33,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,6 +77,9 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     val taskListState = rememberLazyListState()
     var showCompletedTasks by rememberSaveable {
         mutableStateOf(false)
+    }
+    var taskToEdit by remember {
+        mutableStateOf<StudyTaskEntity?>(null)
     }
 
     LaunchedEffect(filteredOpenTasks.size, uiState.selectedFilter) {
@@ -169,6 +176,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                     TaskListItem(
                         task = task,
                         onCheckedChange = { viewModel.toggleTaskCompleted(task) },
+                        onEditClick = { taskToEdit = task },
                         onDeleteClick = { viewModel.deleteTask(task) }
                     )
                 }
@@ -191,12 +199,28 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                         TaskListItem(
                             task = task,
                             onCheckedChange = { viewModel.toggleTaskCompleted(task) },
+                            onEditClick = { taskToEdit = task },
                             onDeleteClick = { viewModel.deleteTask(task) }
                         )
                     }
                 }
             }
         }
+    }
+
+    taskToEdit?.let { task ->
+        EditTaskDialog(
+            task = task,
+            onDismiss = { taskToEdit = null },
+            onSave = { title, priority ->
+                viewModel.updateTaskDetails(
+                    task = task,
+                    title = title,
+                    priority = priority
+                )
+                taskToEdit = null
+            }
+        )
     }
 }
 
@@ -222,6 +246,77 @@ private val TaskPriorityFilter.label: String
         TaskPriorityFilter.MEDIUM -> "Medium"
         TaskPriorityFilter.LOW -> "Low"
     }
+
+@Composable
+private fun EditTaskDialog(
+    task: StudyTaskEntity,
+    onDismiss: () -> Unit,
+    onSave: (String, TaskPriority) -> Unit
+) {
+    var title by remember(task.id) {
+        mutableStateOf(task.title)
+    }
+    var priority by remember(task.id) {
+        mutableStateOf(task.priority)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Edit task")
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(text = "Task title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TaskPriority.entries.forEach { option ->
+                        FilterChip(
+                            selected = priority == option,
+                            onClick = { priority = option },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = option.containerColor,
+                                selectedLabelColor = option.contentColor,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = priority == option,
+                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedBorderColor = option.containerColor
+                            ),
+                            label = {
+                                Text(text = option.label)
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(title, priority) },
+                enabled = title.isNotBlank()
+            ) {
+                Text(text = "Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel")
+            }
+        }
+    )
+}
 
 @Composable
 private fun TaskFilterRow(
@@ -276,6 +371,7 @@ private val TaskPriority.sortOrder: Int
 private fun TaskListItem(
     task: StudyTaskEntity,
     onCheckedChange: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -372,6 +468,14 @@ private fun TaskListItem(
                         }
                     )
                     PriorityChip(priority = task.priority)
+                }
+                IconButton(
+                    onClick = onEditClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Edit task"
+                    )
                 }
                 IconButton(
                     onClick = onDeleteClick
