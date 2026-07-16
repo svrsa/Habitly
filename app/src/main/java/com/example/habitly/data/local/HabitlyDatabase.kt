@@ -18,7 +18,7 @@ import com.example.habitly.data.local.entity.StudyEvidenceEntity
         StudyPlanEntity::class,
         StudyEvidenceEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class HabitlyDatabase : RoomDatabase() {
