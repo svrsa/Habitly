@@ -77,7 +77,8 @@ class StatisticsViewModel(
                         SessionDate(
                             id = session.id,
                             completedAt = session.completedAt,
-                            durationMinutes = session.durationMinutes
+                            durationMinutes = session.durationMinutes,
+                            taskTitle = session.taskId?.let { taskId -> taskTitleById[taskId] }
                         )
                     }
                 )
