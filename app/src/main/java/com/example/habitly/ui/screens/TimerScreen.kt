@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -44,6 +49,7 @@ fun TimerScreen(
         factory = TimerViewModelFactory(
             sessionRepository = application.studySessionRepository,
             planRepository = application.studyPlanRepository,
+            taskRepository = application.studyTaskRepository,
             settingsRepository = application.settingsRepository,
             plannedFocusRequest = plannedFocusRequest
         )
@@ -55,6 +61,12 @@ fun TimerScreen(
     val durations = listOf(15, 25, 45)
     val totalSeconds = uiState.selectedDurationMinutes * 60
     val progress = (1f - (uiState.remainingSeconds.toFloat() / totalSeconds)).coerceIn(0f, 1f)
+    val selectedTask = uiState.availableTasks.firstOrNull { task ->
+        task.id == uiState.selectedTaskId
+    }
+    var taskMenuExpanded by remember {
+        mutableStateOf(false)
+    }
     val statusText = when {
         uiState.wasSessionSaved -> "Focus session saved"
         uiState.remainingSeconds == 0 -> "Focus session complete"
@@ -79,6 +91,57 @@ fun TimerScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Add study snapshot")
+                }
+            }
+        }
+
+        if (uiState.activePlanId == null) {
+            HabitlyCard {
+                Text(
+                    text = "Study task",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Link this focus session to an open task.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { taskMenuExpanded = true },
+                        enabled = !uiState.isRunning,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(selectedTask?.title ?: "No task selected")
+                    }
+                    DropdownMenu(
+                        expanded = taskMenuExpanded,
+                        onDismissRequest = { taskMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("No task") },
+                            onClick = {
+                                viewModel.selectTask(null)
+                                taskMenuExpanded = false
+                            }
+                        )
+                        if (uiState.availableTasks.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text("Create an open task first") },
+                                onClick = { taskMenuExpanded = false },
+                                enabled = false
+                            )
+                        }
+                        uiState.availableTasks.forEach { task ->
+                            DropdownMenuItem(
+                                text = { Text(task.title) },
+                                onClick = {
+                                    viewModel.selectTask(task.id)
+                                    taskMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

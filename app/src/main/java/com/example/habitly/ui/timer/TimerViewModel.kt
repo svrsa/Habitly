@@ -5,26 +5,31 @@ import androidx.lifecycle.viewModelScope
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyPlanRepository
+import com.example.habitly.data.repository.StudyTaskRepository
 import com.example.habitly.ui.planner.PlannedFocusRequest
 import com.example.habitly.ui.settings.SettingsUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TimerViewModel(
     private val sessionRepository: StudySessionRepository,
     private val planRepository: StudyPlanRepository,
+    taskRepository: StudyTaskRepository,
     settingsRepository: SettingsRepository,
     plannedFocusRequest: PlannedFocusRequest?
 ) : ViewModel() {
     private val initialDurationMinutes = plannedFocusRequest?.blockDurationMinutes
         ?: SettingsUiState.DEFAULT_FOCUS_DURATION_MINUTES
-    private val _uiState = MutableStateFlow(
+    private val timerState = MutableStateFlow(
         TimerUiState(
             selectedDurationMinutes = initialDurationMinutes,
             remainingSeconds = initialDurationMinutes * 60,
@@ -32,7 +37,23 @@ class TimerViewModel(
             activeTaskTitle = plannedFocusRequest?.taskTitle
         )
     )
-    val uiState: StateFlow<TimerUiState> = _uiState
+    val uiState: StateFlow<TimerUiState> = combine(
+        timerState,
+        taskRepository.allTasks
+    ) { state, tasks ->
+        val availableTasks = tasks.filterNot { task -> task.isCompleted }
+        val selectedTaskId = state.selectedTaskId
+            ?.takeIf { id -> availableTasks.any { task -> task.id == id } }
+
+        state.copy(
+            selectedTaskId = selectedTaskId,
+            availableTasks = availableTasks
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = timerState.value
+    )
 
     private var timerJob: Job? = null
 
@@ -42,7 +63,7 @@ class TimerViewModel(
                 .map { settings -> settings.defaultFocusDurationMinutes }
                 .distinctUntilChanged()
                 .collect { minutes ->
-                    _uiState.update { state ->
+                    timerState.update { state ->
                         if (state.isRunning || state.activePlanId != null) {
                             state
                         } else {
@@ -58,11 +79,11 @@ class TimerViewModel(
     }
 
     fun startTimer() {
-        if (_uiState.value.isRunning) {
+        if (timerState.value.isRunning) {
             return
         }
 
-        _uiState.update { state ->
+        timerState.update { state ->
             val remainingSeconds = if (state.remainingSeconds == 0) {
                 state.selectedDurationMinutes * 60
             } else {
@@ -77,9 +98,9 @@ class TimerViewModel(
         }
 
         timerJob = viewModelScope.launch {
-            while (_uiState.value.isRunning && _uiState.value.remainingSeconds > 0) {
+            while (timerState.value.isRunning && timerState.value.remainingSeconds > 0) {
                 delay(1_000)
-                _uiState.update { state ->
+                timerState.update { state ->
                     if (state.isRunning) {
                         state.copy(remainingSeconds = state.remainingSeconds - 1)
                     } else {
@@ -88,7 +109,7 @@ class TimerViewModel(
                 }
             }
 
-            if (_uiState.value.remainingSeconds == 0) {
+            if (timerState.value.remainingSeconds == 0) {
                 saveCompletedSession()
             }
         }
@@ -97,7 +118,7 @@ class TimerViewModel(
     fun pauseTimer() {
         timerJob?.cancel()
         timerJob = null
-        _uiState.update { state ->
+        timerState.update { state ->
             state.copy(isRunning = false)
         }
     }
@@ -109,7 +130,7 @@ class TimerViewModel(
         viewModelScope.launch {
             val savedPartialSession = saveCurrentProgressSession()
 
-            _uiState.update { state ->
+            timerState.update { state ->
                 state.copy(
                     remainingSeconds = state.selectedDurationMinutes * 60,
                     isRunning = false,
@@ -126,7 +147,7 @@ class TimerViewModel(
         viewModelScope.launch {
             saveCurrentProgressSession()
 
-            _uiState.update { state ->
+            timerState.update { state ->
                 state.copy(
                     selectedDurationMinutes = minutes,
                     remainingSeconds = minutes * 60,
@@ -137,26 +158,50 @@ class TimerViewModel(
         }
     }
 
+    fun selectTask(taskId: Long?) {
+        timerState.update { state ->
+            if (state.isRunning || state.activePlanId != null) {
+                state
+            } else {
+                state.copy(
+                    selectedTaskId = taskId,
+                    wasSessionSaved = false,
+                    lastSavedSessionId = null
+                )
+            }
+        }
+    }
+
     private suspend fun saveCompletedSession() {
-        val durationMinutes = _uiState.value.selectedDurationMinutes
+        val state = timerState.value
+        val durationMinutes = state.selectedDurationMinutes
 
         timerJob = null
-        _uiState.update { state ->
-            state.copy(isRunning = false)
+        timerState.update { currentState ->
+            currentState.copy(isRunning = false)
         }
 
-        val activePlanId = _uiState.value.activePlanId
-        val sessionId = sessionRepository.addSession(durationMinutes, activePlanId)
+        val activePlanId = state.activePlanId
+        val sessionTaskId = if (activePlanId == null) {
+            uiState.value.selectedTaskId
+        } else {
+            null
+        }
+        val sessionId = sessionRepository.addSession(
+            durationMinutes = durationMinutes,
+            planEntryId = activePlanId,
+            taskId = sessionTaskId
+        )
         if (activePlanId != null) {
             planRepository.completeNextBlock(activePlanId)
         }
-        _uiState.update { state ->
-            state.copy(wasSessionSaved = true, lastSavedSessionId = sessionId)
+        timerState.update { currentState ->
+            currentState.copy(wasSessionSaved = true, lastSavedSessionId = sessionId)
         }
     }
 
     private suspend fun saveCurrentProgressSession(): Boolean {
-        val state = _uiState.value
+        val state = timerState.value
         val elapsedSeconds = state.selectedDurationMinutes * 60 - state.remainingSeconds
 
         if (elapsedSeconds < MINIMUM_PARTIAL_SESSION_SECONDS || state.wasSessionSaved) {
@@ -164,7 +209,16 @@ class TimerViewModel(
         }
 
         val elapsedMinutes = (elapsedSeconds + 59) / 60
-        sessionRepository.addSession(elapsedMinutes, state.activePlanId)
+        val sessionTaskId = if (state.activePlanId == null) {
+            uiState.value.selectedTaskId
+        } else {
+            null
+        }
+        sessionRepository.addSession(
+            durationMinutes = elapsedMinutes,
+            planEntryId = state.activePlanId,
+            taskId = sessionTaskId
+        )
         return true
     }
 

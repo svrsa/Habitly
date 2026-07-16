@@ -8,6 +8,7 @@ import com.example.habitly.data.local.MIGRATION_1_2
 import com.example.habitly.data.local.MIGRATION_2_3
 import com.example.habitly.data.local.MIGRATION_3_4
 import com.example.habitly.data.local.MIGRATION_4_5
+import com.example.habitly.data.local.MIGRATION_5_6
 import com.example.habitly.data.repository.SettingsRepository
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyPlanRepository
@@ -30,7 +31,13 @@ class HabitlyApplication : Application() {
             applicationContext,
             HabitlyDatabase::class.java,
             HABITLY_DATABASE_NAME
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
+        ).addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+            MIGRATION_3_4,
+            MIGRATION_4_5,
+            MIGRATION_5_6
+        ).build()
     }
 
     val studyTaskRepository: StudyTaskRepository by lazy {

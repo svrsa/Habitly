@@ -27,6 +27,7 @@ class StatisticsViewModel(
             sessionRepository.allSessions
         ) { tasks, sessions ->
             val completedTasks = tasks.count { task -> task.isCompleted }
+            val taskTitleById = tasks.associate { task -> task.id to task.title }
             val zoneId = ZoneId.systemDefault()
             val today = LocalDate.now(zoneId)
             val sessionDates = sessions.map { session ->
@@ -62,7 +63,8 @@ class StatisticsViewModel(
                         SessionDate(
                             id = session.id,
                             completedAt = session.completedAt,
-                            durationMinutes = session.durationMinutes
+                            durationMinutes = session.durationMinutes,
+                            taskTitle = session.taskId?.let { taskId -> taskTitleById[taskId] }
                         )
                     }
                 ),
@@ -70,12 +72,25 @@ class StatisticsViewModel(
                     focusMinutesByDate = focusMinutesByDate,
                     today = today
                 ),
+                taskFocusStats = sessions
+                    .filter { session -> session.taskId != null }
+                    .groupBy { session -> session.taskId ?: 0L }
+                    .mapNotNull { (taskId, taskSessions) ->
+                        val taskTitle = taskTitleById[taskId] ?: return@mapNotNull null
+                        TaskFocusStat(
+                            taskTitle = taskTitle,
+                            focusMinutes = taskSessions.sumOf { session -> session.durationMinutes }
+                        )
+                    }
+                    .sortedByDescending { stat -> stat.focusMinutes }
+                    .take(4),
                 recentSessions = buildRecentSessions(
                     sessions = sessions.map { session ->
                         SessionDate(
                             id = session.id,
                             completedAt = session.completedAt,
-                            durationMinutes = session.durationMinutes
+                            durationMinutes = session.durationMinutes,
+                            taskTitle = session.taskId?.let { taskId -> taskTitleById[taskId] }
                         )
                     }
                 )
@@ -121,6 +136,7 @@ class StatisticsViewModel(
                 RecentFocusSession(
                     id = session.id,
                     durationMinutes = session.durationMinutes,
+                    taskTitle = session.taskTitle,
                     completedLabel = formatCompletedLabel(
                         completedDate = completedDate,
                         today = today
@@ -150,6 +166,7 @@ class StatisticsViewModel(
     private data class SessionDate(
         val id: Long,
         val completedAt: Long,
-        val durationMinutes: Int
+        val durationMinutes: Int,
+        val taskTitle: String? = null
     )
 }

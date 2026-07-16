@@ -9,5 +9,6 @@ data class StudySessionEntity(
     val id: Long = 0,
     val durationMinutes: Int,
     val planEntryId: Long? = null,
+    val taskId: Long? = null,
     val completedAt: Long = System.currentTimeMillis()
 )
