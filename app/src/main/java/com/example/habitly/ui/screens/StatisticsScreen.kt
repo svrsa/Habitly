@@ -57,6 +57,7 @@ import com.example.habitly.ui.statistics.StatisticsViewModel
 import com.example.habitly.ui.statistics.StatisticsViewModelFactory
 import com.example.habitly.ui.statistics.StudyHeatmapCalculator
 import com.example.habitly.ui.statistics.StudyHeatmapDay
+import com.example.habitly.ui.statistics.TaskFocusStat
 import com.example.habitly.ui.evidence.EvidenceViewModel
 import com.example.habitly.ui.evidence.EvidenceViewModelFactory
 import java.time.LocalDate
@@ -152,6 +153,8 @@ fun StatisticsScreen(
             dailyStats = uiState.dailyFocusStats
         )
 
+        TaskFocusCard(stats = uiState.taskFocusStats)
+
         StudyHeatmapCard(days = uiState.studyHeatmap)
 
         HabitlyCard {
@@ -182,6 +185,80 @@ fun StatisticsScreen(
             sessions = uiState.recentSessions,
             onDeleteSession = viewModel::deleteSession
         )
+    }
+}
+
+@Composable
+private fun TaskFocusCard(
+    stats: List<TaskFocusStat>,
+    modifier: Modifier = Modifier
+) {
+    HabitlyCard(modifier = modifier) {
+        Text(
+            text = "Task focus",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Focus time grouped by linked study tasks.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        if (stats.isEmpty()) {
+            Text(
+                text = "Choose a task before starting the timer to build this summary.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            stats.forEachIndexed { index, stat ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(22.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${index + 1}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stat.taskTitle,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "linked focus time",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Text(
+                        text = formatFocusDuration(stat.focusMinutes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 }
 

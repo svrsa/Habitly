@@ -11,11 +11,17 @@ data class StatisticsUiState(
     val longestStreakDays: Int = 0,
     val dailyFocusStats: List<DailyFocusStat> = emptyList(),
     val studyHeatmap: List<StudyHeatmapDay> = emptyList(),
+    val taskFocusStats: List<TaskFocusStat> = emptyList(),
     val recentSessions: List<RecentFocusSession> = emptyList()
 )
 
 data class DailyFocusStat(
     val label: String,
+    val focusMinutes: Int
+)
+
+data class TaskFocusStat(
+    val taskTitle: String,
     val focusMinutes: Int
 )
 
