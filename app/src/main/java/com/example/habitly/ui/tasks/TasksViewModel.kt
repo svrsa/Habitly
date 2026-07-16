@@ -74,6 +74,27 @@ class TasksViewModel(
         }
     }
 
+    fun updateTaskDetails(
+        task: StudyTaskEntity,
+        title: String,
+        priority: TaskPriority
+    ) {
+        val trimmedTitle = title.trim()
+
+        if (trimmedTitle.isEmpty()) {
+            return
+        }
+
+        viewModelScope.launch {
+            repository.updateTask(
+                task.copy(
+                    title = trimmedTitle,
+                    priority = priority
+                )
+            )
+        }
+    }
+
     fun deleteTask(task: StudyTaskEntity) {
         viewModelScope.launch {
             repository.deleteTask(task)
