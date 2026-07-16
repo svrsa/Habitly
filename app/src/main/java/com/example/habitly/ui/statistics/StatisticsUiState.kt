@@ -22,5 +22,6 @@ data class DailyFocusStat(
 data class RecentFocusSession(
     val id: Long,
     val durationMinutes: Int,
-    val completedLabel: String
+    val completedLabel: String,
+    val taskTitle: String? = null
 )

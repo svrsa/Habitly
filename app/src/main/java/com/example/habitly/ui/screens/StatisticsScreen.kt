@@ -514,7 +514,7 @@ private fun RecentSessionsCard(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "Focus session",
+                            text = session.taskTitle ?: "Focus session",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
