@@ -1,6 +1,7 @@
 package com.example.habitly.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +61,10 @@ import com.example.habitly.ui.tasks.TasksViewModel
 import com.example.habitly.ui.tasks.TasksViewModelFactory
 
 @Composable
-fun TasksScreen(modifier: Modifier = Modifier) {
+fun TasksScreen(
+    modifier: Modifier = Modifier,
+    onOpenTaskDetail: (Long) -> Unit = {}
+) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: TasksViewModel = viewModel(
         factory = TasksViewModelFactory(application.studyTaskRepository)
@@ -175,6 +179,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                 ) { task ->
                     TaskListItem(
                         task = task,
+                        onTaskClick = { onOpenTaskDetail(task.id) },
                         onCheckedChange = { viewModel.toggleTaskCompleted(task) },
                         onEditClick = { taskToEdit = task },
                         onDeleteClick = { viewModel.deleteTask(task) }
@@ -198,6 +203,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                     ) { task ->
                         TaskListItem(
                             task = task,
+                            onTaskClick = { onOpenTaskDetail(task.id) },
                             onCheckedChange = { viewModel.toggleTaskCompleted(task) },
                             onEditClick = { taskToEdit = task },
                             onDeleteClick = { viewModel.deleteTask(task) }
@@ -370,6 +376,7 @@ private val TaskPriority.sortOrder: Int
 @Composable
 private fun TaskListItem(
     task: StudyTaskEntity,
+    onTaskClick: () -> Unit,
     onCheckedChange: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
@@ -441,6 +448,7 @@ private fun TaskListItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable(onClick = onTaskClick)
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
