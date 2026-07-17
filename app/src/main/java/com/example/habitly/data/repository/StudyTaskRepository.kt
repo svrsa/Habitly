@@ -10,6 +10,10 @@ class StudyTaskRepository(
 ) {
     val allTasks: Flow<List<StudyTaskEntity>> = studyTaskDao.getAllTasks()
 
+    fun getTaskById(taskId: Long): Flow<StudyTaskEntity?> {
+        return studyTaskDao.getTaskById(taskId)
+    }
+
     suspend fun addTask(
         title: String,
         description: String = "",

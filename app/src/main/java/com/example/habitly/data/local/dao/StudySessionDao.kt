@@ -11,6 +11,9 @@ interface StudySessionDao {
     @Query("SELECT * FROM study_sessions ORDER BY completedAt DESC")
     fun getAllSessions(): Flow<List<StudySessionEntity>>
 
+    @Query("SELECT * FROM study_sessions WHERE taskId = :taskId ORDER BY completedAt DESC")
+    fun getSessionsForTask(taskId: Long): Flow<List<StudySessionEntity>>
+
     @Insert
     suspend fun insertSession(session: StudySessionEntity): Long
 
