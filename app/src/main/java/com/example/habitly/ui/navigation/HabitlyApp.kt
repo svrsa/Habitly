@@ -20,6 +20,7 @@ import com.example.habitly.ui.screens.DashboardScreen
 import com.example.habitly.ui.screens.SettingsScreen
 import com.example.habitly.ui.screens.PlannerScreen
 import com.example.habitly.ui.screens.StatisticsScreen
+import com.example.habitly.ui.screens.TaskDetailScreen
 import com.example.habitly.ui.screens.TasksScreen
 import com.example.habitly.ui.screens.TimerScreen
 import com.example.habitly.ui.screens.EvidenceCaptureScreen
@@ -30,6 +31,9 @@ import com.example.habitly.ui.planner.PlannedFocusRequest
 fun HabitlyApp() {
     var selectedDestination by rememberSaveable {
         mutableStateOf(AppDestination.Dashboard)
+    }
+    var selectedTaskId by rememberSaveable {
+        mutableStateOf<Long?>(null)
     }
     var plannedFocusRequest by remember { mutableStateOf<PlannedFocusRequest?>(null) }
     var evidenceSessionId by remember { mutableStateOf<Long?>(null) }
@@ -65,7 +69,20 @@ fun HabitlyApp() {
                     selectedDestination = AppDestination.Timer
                 }
             )
-            AppDestination.Tasks -> TasksScreen(screenModifier)
+            AppDestination.Tasks -> TasksScreen(
+                modifier = screenModifier,
+                onOpenTaskDetail = { taskId ->
+                    selectedTaskId = taskId
+                    selectedDestination = AppDestination.TaskDetail
+                }
+            )
+            AppDestination.TaskDetail -> selectedTaskId?.let { taskId ->
+                TaskDetailScreen(
+                    taskId = taskId,
+                    modifier = screenModifier,
+                    onBack = { selectedDestination = AppDestination.Tasks }
+                )
+            } ?: run { selectedDestination = AppDestination.Tasks }
             AppDestination.Timer -> TimerScreen(
                 modifier = screenModifier,
                 plannedFocusRequest = plannedFocusRequest,

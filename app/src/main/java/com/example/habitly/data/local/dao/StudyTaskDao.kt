@@ -13,6 +13,9 @@ interface StudyTaskDao {
     @Query("SELECT * FROM study_tasks ORDER BY createdAt DESC")
     fun getAllTasks(): Flow<List<StudyTaskEntity>>
 
+    @Query("SELECT * FROM study_tasks WHERE id = :taskId")
+    fun getTaskById(taskId: Long): Flow<StudyTaskEntity?>
+
     @Insert
     suspend fun insertTask(task: StudyTaskEntity)
 

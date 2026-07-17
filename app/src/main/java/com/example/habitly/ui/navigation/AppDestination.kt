@@ -3,6 +3,7 @@ package com.example.habitly.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.PhotoCamera
@@ -38,6 +39,11 @@ enum class AppDestination(
     Tasks(
         title = "Tasks",
         icon = Icons.Outlined.CheckCircle
+    ),
+    TaskDetail(
+        title = "Task Detail",
+        icon = Icons.Outlined.Description,
+        showInBottomBar = false
     ),
     Timer(
         title = "Timer",

@@ -9,6 +9,10 @@ class StudySessionRepository(
 ) {
     val allSessions: Flow<List<StudySessionEntity>> = studySessionDao.getAllSessions()
 
+    fun getSessionsForTask(taskId: Long): Flow<List<StudySessionEntity>> {
+        return studySessionDao.getSessionsForTask(taskId)
+    }
+
     suspend fun addSession(
         durationMinutes: Int,
         planEntryId: Long? = null,
