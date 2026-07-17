@@ -36,4 +36,20 @@ class StudyHeatmapCalculatorTest {
 
         assertTrue(result.filter { day -> day.date.isAfter(today) }.all { day -> day.isFuture })
     }
+
+    @Test
+    fun todayIsIncludedAndNotMarkedAsFuture() {
+        val result = StudyHeatmapCalculator.build(emptyMap(), today)
+        val todayEntry = result.single { day -> day.date == today }
+
+        assertEquals(0, todayEntry.focusMinutes)
+        assertEquals(false, todayEntry.isFuture)
+    }
+
+    @Test
+    fun daysWithoutFocusDefaultToZeroMinutes() {
+        val result = StudyHeatmapCalculator.build(emptyMap(), today)
+
+        assertTrue(result.all { day -> day.focusMinutes == 0 })
+    }
 }

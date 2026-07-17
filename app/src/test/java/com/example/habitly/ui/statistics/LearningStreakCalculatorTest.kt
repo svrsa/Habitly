@@ -65,4 +65,26 @@ class LearningStreakCalculatorTest {
         assertEquals(2, result.currentDays)
         assertEquals(4, result.longestDays)
     }
+
+    @Test
+    fun futureStudyDatesAreIgnored() {
+        val result = LearningStreakCalculator.calculate(
+            studyDates = listOf(today.plusDays(1), today.plusDays(2)),
+            today = today
+        )
+
+        assertEquals(0, result.currentDays)
+        assertEquals(0, result.longestDays)
+    }
+
+    @Test
+    fun todaySessionStartsCurrentStreak() {
+        val result = LearningStreakCalculator.calculate(
+            studyDates = listOf(today),
+            today = today
+        )
+
+        assertEquals(1, result.currentDays)
+        assertEquals(1, result.longestDays)
+    }
 }
