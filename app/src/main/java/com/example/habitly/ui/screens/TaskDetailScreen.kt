@@ -8,15 +8,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +66,9 @@ fun TaskDetailScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     val task = uiState.task
+    var showEditDialog by remember(taskId) {
+        mutableStateOf(false)
+    }
 
     HabitlyScreen(
         title = task?.title ?: "Task detail",
@@ -122,6 +136,28 @@ fun TaskDetailScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Button(
+                onClick = { viewModel.toggleTaskCompleted(task) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = if (task.isCompleted) "Mark open" else "Mark done")
+            }
+            OutlinedButton(
+                onClick = { showEditDialog = true },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = null
+                )
+                Text(text = "Edit")
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             DetailMetricCard(
                 title = "Focus time",
                 value = formatFocusDuration(uiState.totalFocusMinutes),
@@ -137,6 +173,22 @@ fun TaskDetailScreen(
         }
 
         TaskSessionHistory(sessions = uiState.sessions)
+    }
+
+    if (showEditDialog && task != null) {
+        EditTaskDetailDialog(
+            taskTitle = task.title,
+            taskPriority = task.priority,
+            onDismiss = { showEditDialog = false },
+            onSave = { title, priority ->
+                viewModel.updateTaskDetails(
+                    task = task,
+                    title = title,
+                    priority = priority
+                )
+                showEditDialog = false
+            }
+        )
     }
 }
 
@@ -163,6 +215,78 @@ private fun DetailMetricCard(
             fontWeight = FontWeight.Bold
         )
     }
+}
+
+@Composable
+private fun EditTaskDetailDialog(
+    taskTitle: String,
+    taskPriority: TaskPriority,
+    onDismiss: () -> Unit,
+    onSave: (String, TaskPriority) -> Unit
+) {
+    var title by remember(taskTitle) {
+        mutableStateOf(taskTitle)
+    }
+    var priority by remember(taskPriority) {
+        mutableStateOf(taskPriority)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Edit task")
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(text = "Task title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TaskPriority.entries.forEach { option ->
+                        FilterChip(
+                            selected = priority == option,
+                            onClick = { priority = option },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = option.containerColor,
+                                selectedLabelColor = option.contentColor,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = priority == option,
+                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedBorderColor = option.containerColor
+                            ),
+                            label = {
+                                Text(text = option.label)
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(title, priority) },
+                enabled = title.isNotBlank()
+            ) {
+                Text(text = "Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel")
+            }
+        }
+    )
 }
 
 @Composable

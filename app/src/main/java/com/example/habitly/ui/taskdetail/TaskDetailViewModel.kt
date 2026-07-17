@@ -2,16 +2,19 @@ package com.example.habitly.ui.taskdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.habitly.data.local.entity.StudyTaskEntity
+import com.example.habitly.data.local.entity.TaskPriority
 import com.example.habitly.data.repository.StudySessionRepository
 import com.example.habitly.data.repository.StudyTaskRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class TaskDetailViewModel(
     taskId: Long,
-    taskRepository: StudyTaskRepository,
+    private val taskRepository: StudyTaskRepository,
     sessionRepository: StudySessionRepository
 ) : ViewModel() {
     val uiState: StateFlow<TaskDetailUiState> =
@@ -38,4 +41,33 @@ class TaskDetailViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = TaskDetailUiState()
         )
+
+    fun toggleTaskCompleted(task: StudyTaskEntity) {
+        viewModelScope.launch {
+            taskRepository.updateTask(
+                task.copy(isCompleted = !task.isCompleted)
+            )
+        }
+    }
+
+    fun updateTaskDetails(
+        task: StudyTaskEntity,
+        title: String,
+        priority: TaskPriority
+    ) {
+        val trimmedTitle = title.trim()
+
+        if (trimmedTitle.isEmpty()) {
+            return
+        }
+
+        viewModelScope.launch {
+            taskRepository.updateTask(
+                task.copy(
+                    title = trimmedTitle,
+                    priority = priority
+                )
+            )
+        }
+    }
 }
