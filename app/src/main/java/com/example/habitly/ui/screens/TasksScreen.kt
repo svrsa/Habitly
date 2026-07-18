@@ -56,6 +56,7 @@ import com.example.habitly.data.local.entity.StudyTaskEntity
 import com.example.habitly.data.local.entity.TaskPriority
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
+import com.example.habitly.ui.tasks.TaskListBuilder
 import com.example.habitly.ui.tasks.TaskPriorityFilter
 import com.example.habitly.ui.tasks.TasksViewModel
 import com.example.habitly.ui.tasks.TasksViewModelFactory
@@ -70,14 +71,12 @@ fun TasksScreen(
         factory = TasksViewModelFactory(application.studyTaskRepository)
     )
     val uiState by viewModel.uiState.collectAsState()
-    val sortedTasks = uiState.tasks.sortedWith(
-        compareBy<StudyTaskEntity> { task -> task.priority.sortOrder }
-            .thenByDescending { task -> task.createdAt }
+    val taskSections = TaskListBuilder.build(
+        tasks = uiState.tasks,
+        selectedFilter = uiState.selectedFilter
     )
-    val openTasks = sortedTasks.filter { task -> !task.isCompleted }
-    val completedTasks = sortedTasks.filter { task -> task.isCompleted }
-    val filteredOpenTasks = openTasks.filterByPriority(uiState.selectedFilter)
-    val filteredCompletedTasks = completedTasks.filterByPriority(uiState.selectedFilter)
+    val filteredOpenTasks = taskSections.openTasks
+    val filteredCompletedTasks = taskSections.completedTasks
     val taskListState = rememberLazyListState()
     var showCompletedTasks by rememberSaveable {
         mutableStateOf(false)
@@ -230,14 +229,6 @@ fun TasksScreen(
     }
 }
 
-private fun List<StudyTaskEntity>.filterByPriority(
-    filter: TaskPriorityFilter
-): List<StudyTaskEntity> {
-    return filter.priority?.let { priority ->
-        filter { task -> task.priority == priority }
-    } ?: this
-}
-
 private val TaskPriority.label: String
     get() = when (this) {
         TaskPriority.LOW -> "Low"
@@ -364,13 +355,6 @@ private fun TaskFilterRow(
         }
     }
 }
-
-private val TaskPriority.sortOrder: Int
-    get() = when (this) {
-        TaskPriority.HIGH -> 0
-        TaskPriority.MEDIUM -> 1
-        TaskPriority.LOW -> 2
-    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
