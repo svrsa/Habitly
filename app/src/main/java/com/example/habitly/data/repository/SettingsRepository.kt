@@ -21,9 +21,9 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 )
 
 class SettingsRepository(
-    context: Context
+    private val dataStore: DataStore<Preferences>
 ) {
-    private val dataStore = context.settingsDataStore
+    constructor(context: Context) : this(context.settingsDataStore)
 
     val settings: Flow<SettingsUiState> = dataStore.data
         .catch { exception ->
