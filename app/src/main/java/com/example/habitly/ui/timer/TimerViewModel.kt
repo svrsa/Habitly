@@ -174,26 +174,23 @@ class TimerViewModel(
 
     private suspend fun saveCompletedSession() {
         val state = timerState.value
-        val durationMinutes = state.selectedDurationMinutes
 
         timerJob = null
         timerState.update { currentState ->
             currentState.copy(isRunning = false)
         }
 
-        val activePlanId = state.activePlanId
-        val sessionTaskId = if (activePlanId == null) {
-            uiState.value.selectedTaskId
-        } else {
-            null
-        }
-        val sessionId = sessionRepository.addSession(
-            durationMinutes = durationMinutes,
-            planEntryId = activePlanId,
-            taskId = sessionTaskId
+        val session = TimerSessionSavePolicy.completedSession(
+            state = state,
+            selectedTaskId = uiState.value.selectedTaskId
         )
-        if (activePlanId != null) {
-            planRepository.completeNextBlock(activePlanId)
+        val sessionId = sessionRepository.addSession(
+            durationMinutes = session.durationMinutes,
+            planEntryId = session.planEntryId,
+            taskId = session.taskId
+        )
+        if (session.planEntryId != null) {
+            planRepository.completeNextBlock(session.planEntryId)
         }
         timerState.update { currentState ->
             currentState.copy(wasSessionSaved = true, lastSavedSessionId = sessionId)
@@ -202,22 +199,17 @@ class TimerViewModel(
 
     private suspend fun saveCurrentProgressSession(): Boolean {
         val state = timerState.value
-        val elapsedSeconds = state.selectedDurationMinutes * 60 - state.remainingSeconds
-
-        if (elapsedSeconds < MINIMUM_PARTIAL_SESSION_SECONDS || state.wasSessionSaved) {
+        val session = TimerSessionSavePolicy.partialSession(
+            state = state,
+            selectedTaskId = uiState.value.selectedTaskId
+        ) ?: run {
             return false
         }
 
-        val elapsedMinutes = (elapsedSeconds + 59) / 60
-        val sessionTaskId = if (state.activePlanId == null) {
-            uiState.value.selectedTaskId
-        } else {
-            null
-        }
         sessionRepository.addSession(
-            durationMinutes = elapsedMinutes,
-            planEntryId = state.activePlanId,
-            taskId = sessionTaskId
+            durationMinutes = session.durationMinutes,
+            planEntryId = session.planEntryId,
+            taskId = session.taskId
         )
         return true
     }
@@ -225,9 +217,5 @@ class TimerViewModel(
     override fun onCleared() {
         timerJob?.cancel()
         super.onCleared()
-    }
-
-    private companion object {
-        const val MINIMUM_PARTIAL_SESSION_SECONDS = 60
     }
 }
