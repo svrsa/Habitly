@@ -1,17 +1,21 @@
 package com.example.habitly.ui.navigation
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,8 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.habitly.ui.screens.DashboardScreen
 import com.example.habitly.ui.screens.SettingsScreen
@@ -135,44 +142,115 @@ private fun HabitlyBottomBar(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 2.dp, vertical = 2.dp)
+                .shadow(
+                    elevation = 22.dp,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
+                    clip = false
+                ),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            contentColor = MaterialTheme.colorScheme.primary
+        ) {
+            Box(modifier = Modifier.padding(vertical = 33.dp))
+        }
+
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
                 .shadow(
                     elevation = 14.dp,
                     shape = MaterialTheme.shapes.extraLarge,
                     clip = false
-                ),
+            ),
             shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surface,
+            color = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
+            )
         ) {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                tonalElevation = 0.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFFFCFEFF),
+                                Color(0xFFF1F8FF),
+                                Color(0xFFE9F5FF)
+                            )
+                        ),
+                        shape = MaterialTheme.shapes.extraLarge
+                    )
             ) {
-                AppDestination.entries.filter { destination -> destination.showInBottomBar }
-                    .forEach { destination ->
-                        NavigationBarItem(
-                            selected = destination == selectedDestination,
-                            onClick = { onDestinationSelected(destination) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            icon = {
-                                Icon(
-                                    imageVector = destination.icon,
-                                    contentDescription = destination.title
-                                )
-                            },
-                            label = {
-                                Text(text = destination.title)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AppDestination.entries.filter { destination -> destination.showInBottomBar }
+                        .forEach { destination ->
+                            val isSelected = destination == selectedDestination
+                            val itemColor = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
-                        )
-                    }
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = { onDestinationSelected(destination) }
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(34.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Surface(
+                                            modifier = Modifier.size(34.dp),
+                                            shape = MaterialTheme.shapes.extraLarge,
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        ) {}
+                                    }
+                                    Box(
+                                        modifier = Modifier.size(34.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = destination.title,
+                                            modifier = Modifier.size(23.dp),
+                                            tint = itemColor
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = destination.title,
+                                    color = itemColor,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) {
+                                        FontWeight.Bold
+                                    } else {
+                                        FontWeight.SemiBold
+                                    }
+                                )
+                            }
+                        }
+                }
             }
         }
     }
