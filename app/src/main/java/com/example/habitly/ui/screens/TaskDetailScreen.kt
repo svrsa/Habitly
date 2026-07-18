@@ -479,15 +479,15 @@ private val TaskPriority.label: String
 private val TaskPriority.containerColor: Color
     @Composable
     get() = when (this) {
-        TaskPriority.LOW -> Color(0xFFE7F1FF)
-        TaskPriority.MEDIUM -> Color(0xFFFFF1CC)
-        TaskPriority.HIGH -> Color(0xFFFFE2E0)
+        TaskPriority.LOW -> Color(0xFFE5F0FF)
+        TaskPriority.MEDIUM -> Color(0xFFFFE9B8)
+        TaskPriority.HIGH -> Color(0xFFFFD8D2)
     }
 
 private val TaskPriority.contentColor: Color
     @Composable
     get() = when (this) {
         TaskPriority.LOW -> MaterialTheme.colorScheme.primary
-        TaskPriority.MEDIUM -> Color(0xFF8A5A00)
-        TaskPriority.HIGH -> Color(0xFFD92D20)
+        TaskPriority.MEDIUM -> Color(0xFF9A5B00)
+        TaskPriority.HIGH -> Color(0xFFC6281D)
     }

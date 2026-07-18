@@ -83,6 +83,11 @@ fun StatisticsScreen(
         factory = EvidenceViewModelFactory(application.studyEvidenceRepository)
     )
     val evidenceUiState by evidenceViewModel.uiState.collectAsState()
+    val focusAccent = MaterialTheme.colorScheme.primary
+    val sessionAccent = Color(0xFF5E5CE6)
+    val openTaskAccent = Color(0xFFB7791F)
+    val completedTaskAccent = Color(0xFF1F8A5B)
+    val streakAccent = Color(0xFFE15A35)
 
     HabitlyScreen(
         title = "Progress",
@@ -98,6 +103,7 @@ fun StatisticsScreen(
                 value = formatFocusDuration(uiState.totalFocusMinutes),
                 subtitle = "total",
                 icon = Icons.Outlined.PlayArrow,
+                accentColor = focusAccent,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
@@ -105,6 +111,7 @@ fun StatisticsScreen(
                 value = "${uiState.totalSessions}",
                 subtitle = "completed",
                 icon = Icons.Outlined.Schedule,
+                accentColor = sessionAccent,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -118,6 +125,7 @@ fun StatisticsScreen(
                 value = "${uiState.openTasks}",
                 subtitle = "to study",
                 icon = Icons.Outlined.BarChart,
+                accentColor = openTaskAccent,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
@@ -125,6 +133,7 @@ fun StatisticsScreen(
                 value = "${uiState.completedTasks}",
                 subtitle = "completed",
                 icon = Icons.Outlined.CheckCircle,
+                accentColor = completedTaskAccent,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -138,6 +147,7 @@ fun StatisticsScreen(
                 value = "${uiState.currentStreakDays}",
                 subtitle = "days",
                 icon = Icons.Outlined.LocalFireDepartment,
+                accentColor = streakAccent,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
@@ -145,6 +155,7 @@ fun StatisticsScreen(
                 value = "${uiState.longestStreakDays}",
                 subtitle = "days",
                 icon = Icons.Outlined.EmojiEvents,
+                accentColor = sessionAccent,
                 modifier = Modifier.weight(1f)
             )
         }
