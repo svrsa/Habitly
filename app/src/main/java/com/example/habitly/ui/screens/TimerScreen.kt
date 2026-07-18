@@ -75,7 +75,7 @@ fun TimerScreen(
     }
 
     HabitlyScreen(
-        title = "Focus",
+        title = "Focus timer",
         subtitle = statusText,
         modifier = modifier
     ) {

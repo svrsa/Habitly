@@ -74,8 +74,8 @@ fun DashboardScreen(
     val greeting = rememberGreeting()
 
     HabitlyScreen(
-        title = greeting,
-        subtitle = "Ready for your next study block?",
+        title = "Today",
+        subtitle = "$greeting. ${uiState.todayFocusMinutes} of $studyGoalMinutes focus minutes logged.",
         modifier = modifier
     ) {
         HabitlyCard(

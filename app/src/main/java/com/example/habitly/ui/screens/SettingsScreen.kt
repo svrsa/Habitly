@@ -87,7 +87,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     HabitlyScreen(
         title = "Settings",
-        subtitle = "Adjust your study defaults.",
+        subtitle = "Tune focus duration, daily goals, and reminders.",
         modifier = modifier
     ) {
         HabitlyCard {

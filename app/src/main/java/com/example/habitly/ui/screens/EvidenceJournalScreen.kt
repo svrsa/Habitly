@@ -53,8 +53,8 @@ fun EvidenceJournalScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     HabitlyScreen(
-        title = "Study journal",
-        subtitle = "Visual proof of the work behind your focus streak.",
+        title = "Journal",
+        subtitle = "${uiState.evidence.size} study snapshots saved from your sessions.",
         modifier = modifier,
         scrollable = false
     ) {

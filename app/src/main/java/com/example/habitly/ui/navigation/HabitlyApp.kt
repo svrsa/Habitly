@@ -1,6 +1,11 @@
 package com.example.habitly.ui.navigation
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -8,6 +13,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,6 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.habitly.ui.screens.DashboardScreen
 import com.example.habitly.ui.screens.SettingsScreen
 import com.example.habitly.ui.screens.PlannerScreen
@@ -52,10 +61,9 @@ fun HabitlyApp() {
                 )
             }
         }
-    ) { innerPadding ->
+    ) { _ ->
         val screenModifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
 
         when (selectedDestination) {
             AppDestination.Dashboard -> DashboardScreen(
@@ -117,32 +125,55 @@ private fun HabitlyBottomBar(
     selectedDestination: AppDestination,
     onDestinationSelected: (AppDestination) -> Unit
 ) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .background(Color.Transparent)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-        AppDestination.entries.filter { destination -> destination.showInBottomBar }
-            .forEach { destination ->
-            NavigationBarItem(
-                selected = destination == selectedDestination,
-                onClick = { onDestinationSelected(destination) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 14.dp,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    clip = false
                 ),
-                icon = {
-                    Icon(
-                        imageVector = destination.icon,
-                        contentDescription = destination.title
-                    )
-                },
-                label = {
-                    Text(text = destination.title)
-                }
-            )
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                tonalElevation = 0.dp
+            ) {
+                AppDestination.entries.filter { destination -> destination.showInBottomBar }
+                    .forEach { destination ->
+                        NavigationBarItem(
+                            selected = destination == selectedDestination,
+                            onClick = { onDestinationSelected(destination) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            icon = {
+                                Icon(
+                                    imageVector = destination.icon,
+                                    contentDescription = destination.title
+                                )
+                            },
+                            label = {
+                                Text(text = destination.title)
+                            }
+                        )
+                    }
+            }
         }
     }
 }

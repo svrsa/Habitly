@@ -80,8 +80,8 @@ fun PlannerScreen(
     }
 
     HabitlyScreen(
-        title = "Study planner",
-        subtitle = "Turn open tasks into realistic focus blocks.",
+        title = "Planner",
+        subtitle = "$selectedDateLabel · ${uiState.totalBlocks} planned focus blocks.",
         modifier = modifier
     ) {
         HabitlyCard {

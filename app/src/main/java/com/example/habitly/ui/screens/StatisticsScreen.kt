@@ -85,8 +85,8 @@ fun StatisticsScreen(
     val evidenceUiState by evidenceViewModel.uiState.collectAsState()
 
     HabitlyScreen(
-        title = "Statistics",
-        subtitle = "Progress from your tasks and saved focus sessions.",
+        title = "Progress",
+        subtitle = "${formatFocusDuration(uiState.totalFocusMinutes)} saved across ${uiState.totalSessions} focus sessions.",
         modifier = modifier
     ) {
         Row(
