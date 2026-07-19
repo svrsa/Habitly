@@ -138,18 +138,31 @@ fun PlannerScreen(
                 }
                 DropdownMenu(
                     expanded = taskMenuExpanded,
-                    onDismissRequest = { taskMenuExpanded = false }
+                    onDismissRequest = { taskMenuExpanded = false },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 8.dp
                 ) {
                     if (uiState.availableTasks.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text("Create an open task first") },
+                            text = {
+                                Text(
+                                    text = "Create an open task first",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
                             onClick = { taskMenuExpanded = false },
                             enabled = false
                         )
                     }
                     uiState.availableTasks.forEach { task ->
                         DropdownMenuItem(
-                            text = { Text(task.title) },
+                            text = {
+                                Text(
+                                    text = task.title,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            },
                             onClick = {
                                 viewModel.selectTask(task.id)
                                 taskMenuExpanded = false
