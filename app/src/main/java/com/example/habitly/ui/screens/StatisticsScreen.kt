@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material3.AlertDialog
@@ -465,6 +467,9 @@ private fun StudyActivityCard(
     var sessionToDelete by remember {
         mutableStateOf<RecentFocusSession?>(null)
     }
+    var showRecentSessions by remember {
+        mutableStateOf(false)
+    }
 
     HabitlyCard(
         modifier = modifier
@@ -576,19 +581,49 @@ private fun StudyActivityCard(
             }
         }
 
-        Text(
-            text = "Recent sessions",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Recent sessions",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (sessions.isEmpty()) {
+                        "Completed focus sessions will appear here."
+                    } else {
+                        "${sessions.size} latest focus sessions"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(
+                onClick = { showRecentSessions = !showRecentSessions },
+                enabled = sessions.isNotEmpty()
+            ) {
+                Icon(
+                    imageVector = if (showRecentSessions) {
+                        Icons.Outlined.KeyboardArrowUp
+                    } else {
+                        Icons.Outlined.KeyboardArrowDown
+                    },
+                    contentDescription = if (showRecentSessions) {
+                        "Hide recent sessions"
+                    } else {
+                        "Show recent sessions"
+                    }
+                )
+            }
+        }
 
-        if (sessions.isEmpty()) {
-            Text(
-                text = "Completed focus sessions will appear here.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
+        if (showRecentSessions) {
             sessions.forEach { session ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),

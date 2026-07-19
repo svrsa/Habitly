@@ -1,6 +1,7 @@
 package com.example.habitly.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -46,8 +48,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -139,7 +148,7 @@ fun TasksScreen(
                             enabled = true,
                             selected = uiState.selectedPriority == priority,
                             borderColor = MaterialTheme.colorScheme.surfaceVariant,
-                            selectedBorderColor = priority.containerColor
+                            selectedBorderColor = priority.contentColor
                         ),
                         label = {
                             Text(text = priority.label)
@@ -149,69 +158,19 @@ fun TasksScreen(
             }
         }
 
-        TaskFilterRow(
+        TaskBoard(
+            openTasks = filteredOpenTasks,
+            completedTasks = filteredCompletedTasks,
             selectedFilter = uiState.selectedFilter,
-            onFilterSelected = viewModel::onFilterSelected
+            showCompletedTasks = showCompletedTasks,
+            taskListState = taskListState,
+            onFilterSelected = viewModel::onFilterSelected,
+            onCompletedToggle = { showCompletedTasks = !showCompletedTasks },
+            onTaskClick = onOpenTaskDetail,
+            onCheckedChange = viewModel::toggleTaskCompleted,
+            onEditClick = { task -> taskToEdit = task },
+            onDeleteClick = viewModel::deleteTask
         )
-
-        if (uiState.tasks.isEmpty()) {
-            HabitlyCard {
-                Text(
-                    text = "No study tasks yet",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Add your first topic, chapter, or exam prep step.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                state = taskListState,
-                contentPadding = PaddingValues(top = 6.dp, bottom = 112.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    items = filteredOpenTasks,
-                    key = { task -> task.id }
-                ) { task ->
-                    TaskListItem(
-                        task = task,
-                        onTaskClick = { onOpenTaskDetail(task.id) },
-                        onCheckedChange = { viewModel.toggleTaskCompleted(task) },
-                        onEditClick = { taskToEdit = task },
-                        onDeleteClick = { viewModel.deleteTask(task) }
-                    )
-                }
-
-                if (filteredCompletedTasks.isNotEmpty()) {
-                    item {
-                        CompletedTasksHeader(
-                            completedCount = filteredCompletedTasks.size,
-                            expanded = showCompletedTasks,
-                            onToggle = { showCompletedTasks = !showCompletedTasks }
-                        )
-                    }
-                }
-
-                if (showCompletedTasks) {
-                    items(
-                        items = filteredCompletedTasks,
-                        key = { task -> task.id }
-                    ) { task ->
-                        TaskListItem(
-                            task = task,
-                            onTaskClick = { onOpenTaskDetail(task.id) },
-                            onCheckedChange = { viewModel.toggleTaskCompleted(task) },
-                            onEditClick = { taskToEdit = task },
-                            onDeleteClick = { viewModel.deleteTask(task) }
-                        )
-                    }
-                }
-            }
-        }
     }
 
     taskToEdit?.let { task ->
@@ -317,42 +276,223 @@ private fun EditTaskDialog(
 }
 
 @Composable
-private fun TaskFilterRow(
+private fun TaskBoard(
+    openTasks: List<StudyTaskEntity>,
+    completedTasks: List<StudyTaskEntity>,
     selectedFilter: TaskPriorityFilter,
-    onFilterSelected: (TaskPriorityFilter) -> Unit
+    showCompletedTasks: Boolean,
+    taskListState: LazyListState,
+    onFilterSelected: (TaskPriorityFilter) -> Unit,
+    onCompletedToggle: () -> Unit,
+    onTaskClick: (Long) -> Unit,
+    onCheckedChange: (StudyTaskEntity) -> Unit,
+    onEditClick: (StudyTaskEntity) -> Unit,
+    onDeleteClick: (StudyTaskEntity) -> Unit
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val glassBorderColor = Color(0xFF5D7186)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 18.dp,
+                shape = MaterialTheme.shapes.extraLarge,
+                ambientColor = Color.Black.copy(alpha = 0.34f),
+                spotColor = primaryColor.copy(alpha = 0.14f),
+                clip = false
+            ),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = glassBorderColor.copy(alpha = 0.70f)
+        )
     ) {
-        TaskPriorityFilter.entries.forEach { filter ->
-            val priority = filter.priority
-            FilterChip(
-                selected = selectedFilter == filter,
-                onClick = { onFilterSelected(filter) },
-                colors = if (priority != null) {
-                    FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = priority.containerColor,
-                        selectedLabelColor = priority.contentColor,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        Box(
+            modifier = Modifier.background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF34404E),
+                        Color(0xFF283443),
+                        Color(0xFF202D3A)
+                    )
+                ),
+                shape = MaterialTheme.shapes.extraLarge
+            )
+        ) {
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val cornerRadius = 28.dp.toPx()
+                val inset = 1.2.dp.toPx()
+                val cardSize = Size(size.width - inset * 2, size.height - inset * 2)
+                val cardTopLeft = Offset(inset, inset)
+
+                drawRoundRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.14f),
+                            Color.White.copy(alpha = 0.075f),
+                            Color.Transparent
+                        ),
+                        startY = 0f,
+                        endY = 96.dp.toPx()
+                    ),
+                    topLeft = Offset(2.dp.toPx(), 2.dp.toPx()),
+                    size = Size(size.width - 4.dp.toPx(), size.height - 4.dp.toPx()),
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                )
+
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.28f),
+                            glassBorderColor.copy(alpha = 0.58f),
+                            primaryColor.copy(alpha = 0.26f)
+                        ),
+                        start = Offset.Zero,
+                        end = Offset(size.width, size.height)
+                    ),
+                    topLeft = cardTopLeft,
+                    size = cardSize,
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+                    style = Stroke(width = 2.2.dp.toPx())
+                )
+
+                drawRoundRect(
+                    color = Color.White.copy(alpha = 0.16f),
+                    topLeft = cardTopLeft,
+                    size = cardSize,
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+                    style = Stroke(width = 1.dp.toPx())
+                )
+
+                drawRoundRect(
+                    color = primaryColor.copy(alpha = 0.11f),
+                    topLeft = Offset(4.dp.toPx(), 4.dp.toPx()),
+                    size = Size(size.width - 8.dp.toPx(), size.height - 8.dp.toPx()),
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+                    style = Stroke(width = 6.dp.toPx())
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(horizontal = 22.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "Task board",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${openTasks.size} open, ${completedTasks.size} done",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TaskPriorityFilter.entries.forEach { filter ->
+                        val priority = filter.priority
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = { onFilterSelected(filter) },
+                            colors = if (priority != null) {
+                                FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = priority.containerColor,
+                                    selectedLabelColor = priority.contentColor,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = selectedFilter == filter,
+                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectedBorderColor = priority?.contentColor
+                                    ?: MaterialTheme.colorScheme.primaryContainer
+                            ),
+                            label = {
+                                Text(text = filter.label)
+                            }
+                        )
+                    }
+                }
+
+                if (openTasks.isEmpty() && completedTasks.isEmpty()) {
+                    Text(
+                        text = "No study tasks yet",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Add your first topic, chapter, or exam prep step.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = selectedFilter == filter,
-                    borderColor = MaterialTheme.colorScheme.surfaceVariant,
-                    selectedBorderColor = priority?.containerColor
-                        ?: MaterialTheme.colorScheme.primaryContainer
-                ),
-                label = {
-                    Text(text = filter.label)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        state = taskListState,
+                        contentPadding = PaddingValues(top = 0.dp, bottom = 112.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            items = openTasks,
+                            key = { task -> task.id }
+                        ) { task ->
+                            TaskListItem(
+                                task = task,
+                                onTaskClick = { onTaskClick(task.id) },
+                                onCheckedChange = { onCheckedChange(task) },
+                                onEditClick = { onEditClick(task) },
+                                onDeleteClick = { onDeleteClick(task) }
+                            )
+                        }
+
+                        if (completedTasks.isNotEmpty()) {
+                            item {
+                                CompletedTasksHeader(
+                                    completedCount = completedTasks.size,
+                                    expanded = showCompletedTasks,
+                                    onToggle = onCompletedToggle
+                                )
+                            }
+                        }
+
+                        if (showCompletedTasks) {
+                            items(
+                                items = completedTasks,
+                                key = { task -> task.id }
+                            ) { task ->
+                                TaskListItem(
+                                    task = task,
+                                    onTaskClick = { onTaskClick(task.id) },
+                                    onCheckedChange = { onCheckedChange(task) },
+                                    onEditClick = { onEditClick(task) },
+                                    onDeleteClick = { onDeleteClick(task) }
+                                )
+                            }
+                        }
+                    }
                 }
-            )
+            }
         }
     }
 }
@@ -385,6 +525,9 @@ private fun TaskListItem(
     )
     val dismissDirection = dismissState.dismissDirection
     val isDeleteAction = dismissDirection == SwipeToDismissBoxValue.EndToStart
+    val swipeDeleteColor = Color(0xFFB42318)
+    val swipeCompleteColor = Color(0xFF0F766E)
+    val swipeActionContentColor = Color.White
 
     SwipeToDismissBox(
         state = dismissState,
@@ -395,9 +538,9 @@ private fun TaskListItem(
                     .fillMaxSize()
                     .background(
                         color = if (isDeleteAction) {
-                            MaterialTheme.colorScheme.errorContainer
+                            swipeDeleteColor
                         } else {
-                            MaterialTheme.colorScheme.primaryContainer
+                            swipeCompleteColor
                         },
                         shape = MaterialTheme.shapes.large
                     )
@@ -419,11 +562,7 @@ private fun TaskListItem(
                     } else {
                         "Complete task"
                     },
-                    tint = if (isDeleteAction) {
-                        MaterialTheme.colorScheme.onErrorContainer
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    }
+                    tint = swipeActionContentColor
                 )
             }
         }
@@ -549,15 +688,15 @@ private fun PriorityChip(priority: TaskPriority) {
 private val TaskPriority.containerColor: Color
     @Composable
     get() = when (this) {
-        TaskPriority.LOW -> Color(0xFFE5F0FF)
-        TaskPriority.MEDIUM -> Color(0xFFFFE9B8)
-        TaskPriority.HIGH -> Color(0xFFFFD8D2)
+        TaskPriority.LOW -> Color(0xFF123328)
+        TaskPriority.MEDIUM -> Color(0xFF3A2A12)
+        TaskPriority.HIGH -> Color(0xFF3D211C)
     }
 
 private val TaskPriority.contentColor: Color
     @Composable
     get() = when (this) {
-        TaskPriority.LOW -> MaterialTheme.colorScheme.primary
-        TaskPriority.MEDIUM -> Color(0xFF9A5B00)
-        TaskPriority.HIGH -> Color(0xFFC6281D)
+        TaskPriority.LOW -> Color(0xFF1F8A5B)
+        TaskPriority.MEDIUM -> Color(0xFFB7791F)
+        TaskPriority.HIGH -> Color(0xFFE15A35)
     }
