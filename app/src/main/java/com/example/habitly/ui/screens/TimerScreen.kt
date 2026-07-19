@@ -1,20 +1,26 @@
 package com.example.habitly.ui.screens
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,13 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
+import com.example.habitly.data.local.entity.StudyTaskEntity
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
 import com.example.habitly.ui.timer.TimerViewModel
@@ -75,7 +81,7 @@ fun TimerScreen(
     }
 
     HabitlyScreen(
-        title = "Focus",
+        title = "Focus timer",
         subtitle = statusText,
         modifier = modifier
     ) {
@@ -91,57 +97,6 @@ fun TimerScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Add study snapshot")
-                }
-            }
-        }
-
-        if (uiState.activePlanId == null) {
-            HabitlyCard {
-                Text(
-                    text = "Study task",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Link this focus session to an open task.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(
-                        onClick = { taskMenuExpanded = true },
-                        enabled = !uiState.isRunning,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(selectedTask?.title ?: "No task selected")
-                    }
-                    DropdownMenu(
-                        expanded = taskMenuExpanded,
-                        onDismissRequest = { taskMenuExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("No task") },
-                            onClick = {
-                                viewModel.selectTask(null)
-                                taskMenuExpanded = false
-                            }
-                        )
-                        if (uiState.availableTasks.isEmpty()) {
-                            DropdownMenuItem(
-                                text = { Text("Create an open task first") },
-                                onClick = { taskMenuExpanded = false },
-                                enabled = false
-                            )
-                        }
-                        uiState.availableTasks.forEach { task ->
-                            DropdownMenuItem(
-                                text = { Text(task.title) },
-                                onClick = {
-                                    viewModel.selectTask(task.id)
-                                    taskMenuExpanded = false
-                                }
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -162,9 +117,9 @@ fun TimerScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(22.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                FocusTimerRing(
+                FocusTimerDisplay(
                     timerText = timerText,
                     progress = progress,
                     durationText = "${uiState.selectedDurationMinutes} min"
@@ -192,19 +147,42 @@ fun TimerScreen(
                                 viewModel.startTimer()
                             }
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(54.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Text(
-                            text = if (uiState.isRunning) "Pause" else "Start focus"
+                            text = if (uiState.isRunning) "Pause" else "Start focus",
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
                     OutlinedButton(
                         onClick = viewModel::resetTimer,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(54.dp)
                     ) {
                         Text(text = "Reset")
                     }
+                }
+
+                if (uiState.activePlanId == null) {
+                    TimerTaskSelector(
+                        selectedTaskTitle = selectedTask?.title,
+                        availableTasks = uiState.availableTasks,
+                        expanded = taskMenuExpanded,
+                        enabled = !uiState.isRunning,
+                        onExpandedChange = { taskMenuExpanded = it },
+                        onTaskSelected = { taskId ->
+                            viewModel.selectTask(taskId)
+                            taskMenuExpanded = false
+                        }
+                    )
                 }
             }
         }
@@ -244,53 +222,162 @@ fun TimerScreen(
 }
 
 @Composable
-private fun FocusTimerRing(
+private fun FocusTimerDisplay(
     timerText: String,
     progress: Float,
     durationText: String,
     modifier: Modifier = Modifier
 ) {
-    val trackColor = MaterialTheme.colorScheme.primaryContainer
     val progressColor = MaterialTheme.colorScheme.primary
 
-    Box(
-        modifier = modifier.size(236.dp),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Canvas(
-            modifier = Modifier.size(236.dp)
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = progressColor.copy(alpha = 0.14f),
+            contentColor = progressColor
         ) {
-            val strokeWidth = 14.dp.toPx()
-            drawCircle(
-                color = trackColor,
-                style = Stroke(width = strokeWidth)
-            )
-            drawArc(
-                color = progressColor,
-                startAngle = -90f,
-                sweepAngle = progress * 360f,
-                useCenter = false,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Round
-                )
+            Text(
+                text = "FOCUS BLOCK",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
             )
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        Text(
+            text = timerText,
+            style = MaterialTheme.typography.displayLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            text = durationText,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(18.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f),
+                    shape = MaterialTheme.shapes.extraLarge
+                )
         ) {
-            Text(
-                text = timerText,
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.Bold
+            val safeProgress = progress.coerceIn(0f, 1f)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(safeProgress)
+                    .height(18.dp)
+                    .background(
+                        color = progressColor.copy(alpha = 0.22f),
+                        shape = MaterialTheme.shapes.extraLarge
+                    )
             )
-            Text(
-                text = durationText,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(safeProgress)
+                    .height(10.dp)
+                    .align(Alignment.CenterStart)
+                    .background(
+                        color = progressColor,
+                        shape = MaterialTheme.shapes.extraLarge
+                    )
             )
+            if (safeProgress > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(safeProgress)
+                        .height(18.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .offset(x = 5.dp)
+                            .size(12.dp)
+                            .background(
+                                color = Color.White,
+                                shape = MaterialTheme.shapes.extraLarge
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimerTaskSelector(
+    selectedTaskTitle: String?,
+    availableTasks: List<StudyTaskEntity>,
+    expanded: Boolean,
+    enabled: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onTaskSelected: (Long?) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Linked task",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold
+        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { onExpandedChange(true) },
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(selectedTaskTitle ?: "No task selected")
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { onExpandedChange(false) },
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+                shadowElevation = 8.dp
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "No task",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    onClick = { onTaskSelected(null) }
+                )
+                if (availableTasks.isEmpty()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Create an open task first",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { onExpandedChange(false) },
+                        enabled = false
+                    )
+                }
+                availableTasks.forEach { task ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = task.title,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        onClick = { onTaskSelected(task.id) }
+                    )
+                }
+            }
         }
     }
 }

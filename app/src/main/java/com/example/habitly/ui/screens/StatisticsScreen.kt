@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.LocalFireDepartment
-import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material3.AlertDialog
@@ -41,6 +38,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +47,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.habitly.HabitlyApplication
 import com.example.habitly.ui.components.HabitlyCard
 import com.example.habitly.ui.components.HabitlyScreen
-import com.example.habitly.ui.components.MetricCard
 import com.example.habitly.ui.format.formatFocusDuration
 import com.example.habitly.ui.statistics.DailyFocusStat
 import com.example.habitly.ui.statistics.RecentFocusSession
@@ -83,105 +80,26 @@ fun StatisticsScreen(
         factory = EvidenceViewModelFactory(application.studyEvidenceRepository)
     )
     val evidenceUiState by evidenceViewModel.uiState.collectAsState()
+    val focusAccent = MaterialTheme.colorScheme.primary
+    val sessionAccent = Color(0xFF5E5CE6)
 
     HabitlyScreen(
-        title = "Statistics",
-        subtitle = "Progress from your tasks and saved focus sessions.",
+        title = "Progress",
+        subtitle = "${formatFocusDuration(uiState.totalFocusMinutes)} saved across ${uiState.totalSessions} focus sessions.",
         modifier = modifier
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MetricCard(
-                title = "Focus time",
-                value = formatFocusDuration(uiState.totalFocusMinutes),
-                subtitle = "total",
-                icon = Icons.Outlined.PlayArrow,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                title = "Sessions",
-                value = "${uiState.totalSessions}",
-                subtitle = "completed",
-                icon = Icons.Outlined.Schedule,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MetricCard(
-                title = "Open tasks",
-                value = "${uiState.openTasks}",
-                subtitle = "to study",
-                icon = Icons.Outlined.BarChart,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                title = "Done tasks",
-                value = "${uiState.completedTasks}",
-                subtitle = "completed",
-                icon = Icons.Outlined.CheckCircle,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MetricCard(
-                title = "Current streak",
-                value = "${uiState.currentStreakDays}",
-                subtitle = "days",
-                icon = Icons.Outlined.LocalFireDepartment,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                title = "Best streak",
-                value = "${uiState.longestStreakDays}",
-                subtitle = "days",
-                icon = Icons.Outlined.EmojiEvents,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        WeeklyFocusChart(
-            dailyStats = uiState.dailyFocusStats
+        WeeklyAnalyticsCard(
+            dailyStats = uiState.dailyFocusStats,
+            focusAccent = focusAccent,
+            sessionAccent = sessionAccent
         )
-
-        TaskFocusCard(stats = uiState.taskFocusStats)
 
         StudyHeatmapCard(days = uiState.studyHeatmap)
 
-        HabitlyCard {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Outlined.Collections, contentDescription = null)
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Study journal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(
-                        if (evidenceUiState.evidence.isEmpty()) {
-                            "Add a photo after a focus session."
-                        } else {
-                            "${evidenceUiState.evidence.size} study snapshots saved"
-                        },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Button(onClick = onOpenJournal, modifier = Modifier.fillMaxWidth()) {
-                Text("Open study journal")
-            }
-        }
-
-        RecentSessionsCard(
+        StudyActivityCard(
+            evidenceCount = evidenceUiState.evidence.size,
+            taskFocusStats = uiState.taskFocusStats,
+            onOpenJournal = onOpenJournal,
             sessions = uiState.recentSessions,
             onDeleteSession = viewModel::deleteSession
         )
@@ -189,76 +107,166 @@ fun StatisticsScreen(
 }
 
 @Composable
-private fun TaskFocusCard(
-    stats: List<TaskFocusStat>,
+private fun WeeklyAnalyticsCard(
+    dailyStats: List<DailyFocusStat>,
+    focusAccent: Color,
+    sessionAccent: Color,
     modifier: Modifier = Modifier
 ) {
-    HabitlyCard(modifier = modifier) {
-        Text(
-            text = "Task focus",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Focus time grouped by linked study tasks.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    val weekFocusMinutes = dailyStats.sumOf { stat -> stat.focusMinutes }
+    val activeDays = dailyStats.count { stat -> stat.focusMinutes > 0 }
+    val bestDay = dailyStats.maxByOrNull { stat -> stat.focusMinutes }
+    val maxMinutes = dailyStats.maxOfOrNull { stat -> stat.focusMinutes }?.coerceAtLeast(1) ?: 1
+    val trackColor = MaterialTheme.colorScheme.primaryContainer
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-        if (stats.isEmpty()) {
+    HabitlyCard(
+        modifier = modifier
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
-                text = "Choose a task before starting the timer to build this summary.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "This week",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
-        } else {
-            stats.forEachIndexed { index, stat ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .size(22.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "${index + 1}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+            Text(
+                text = "Focus minutes saved from completed timer sessions.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = labelColor
+            )
+        }
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stat.taskTitle,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "linked focus time",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Column {
+                Text(
+                    text = formatFocusDuration(weekFocusMinutes),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = focusAccent,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "saved this week",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = labelColor
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "$activeDays / 7",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = sessionAccent,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "active days",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = labelColor
+                )
+            }
+        }
 
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+        ) {
+            if (dailyStats.isEmpty()) return@Canvas
+
+            val horizontalPadding = 10.dp.toPx()
+            val topPadding = 18.dp.toPx()
+            val bottomPadding = 24.dp.toPx()
+            val chartWidth = size.width - horizontalPadding * 2
+            val chartHeight = size.height - topPadding - bottomPadding
+            val stepX = if (dailyStats.size > 1) {
+                chartWidth / (dailyStats.size - 1)
+            } else {
+                chartWidth
+            }
+
+            val points = dailyStats.mapIndexed { index, stat ->
+                val x = horizontalPadding + stepX * index
+                val valueProgress = stat.focusMinutes / maxMinutes.toFloat()
+                val y = topPadding + chartHeight - chartHeight * valueProgress
+                x to y
+            }
+
+            points.zipWithNext().forEach { (start, end) ->
+                drawLine(
+                    color = focusAccent,
+                    start = androidx.compose.ui.geometry.Offset(start.first, start.second),
+                    end = androidx.compose.ui.geometry.Offset(end.first, end.second),
+                    strokeWidth = 4.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+
+            points.forEach { point ->
+                drawCircle(
+                    color = trackColor,
+                    radius = 9.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+                )
+                drawCircle(
+                    color = focusAccent,
+                    radius = 5.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            dailyStats.forEach { stat ->
+                Column {
                     Text(
-                        text = formatFocusDuration(stat.focusMinutes),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
+                        text = stat.label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = labelColor
+                    )
+                    Text(
+                        text = "${stat.focusMinutes}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         }
+
+        bestDay?.let { stat ->
+            Text(
+                text = "Best day: ${stat.label} with ${formatFocusDuration(stat.focusMinutes)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = labelColor
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryIcon(
+    icon: ImageVector,
+    accentColor: Color
+) {
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = accentColor.copy(alpha = 0.16f),
+        contentColor = accentColor
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier
+                .padding(10.dp)
+                .size(22.dp)
+        )
     }
 }
 
@@ -276,6 +284,10 @@ private fun StudyHeatmapCard(
     val today = LocalDate.now()
     val emptyColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
     val futureColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f)
+    val heatmapLow = Color(0xFFFACC15)
+    val heatmapMedium = Color(0xFFF59E0B)
+    val heatmapHigh = Color(0xFFF97316)
+    val heatmapPeak = Color(0xFFEF4444)
     val maxMinutes = days
         .filterNot { day -> day.isFuture }
         .maxOfOrNull { day -> day.focusMinutes }
@@ -346,10 +358,10 @@ private fun StudyHeatmapCard(
                 val cellColor = when {
                     day.isFuture -> futureColor
                     day.focusMinutes == 0 -> emptyColor
-                    intensity <= 0.25f -> primary.copy(alpha = 0.28f)
-                    intensity <= 0.50f -> primary.copy(alpha = 0.48f)
-                    intensity <= 0.75f -> primary.copy(alpha = 0.70f)
-                    else -> primary
+                    intensity <= 0.25f -> heatmapLow.copy(alpha = 0.58f)
+                    intensity <= 0.50f -> heatmapMedium.copy(alpha = 0.72f)
+                    intensity <= 0.75f -> heatmapHigh.copy(alpha = 0.86f)
+                    else -> heatmapPeak
                 }
                 val left = column * slotWidth + (slotWidth - squareSize) / 2f
                 val top = row * slotHeight + (slotHeight - squareSize) / 2f
@@ -419,9 +431,16 @@ private fun StudyHeatmapCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             listOf(0.16f, 0.32f, 0.52f, 0.74f, 1f).forEach { alpha ->
+                val legendColor = when (alpha) {
+                    0.16f -> emptyColor
+                    0.32f -> heatmapLow.copy(alpha = 0.58f)
+                    0.52f -> heatmapMedium.copy(alpha = 0.72f)
+                    0.74f -> heatmapHigh.copy(alpha = 0.86f)
+                    else -> heatmapPeak
+                }
                 Canvas(modifier = Modifier.padding(start = 5.dp).size(12.dp)) {
                     drawRoundRect(
-                        color = primary.copy(alpha = alpha),
+                        color = legendColor,
                         cornerRadius = CornerRadius(3.dp.toPx())
                     )
                 }
@@ -437,102 +456,10 @@ private fun StudyHeatmapCard(
 }
 
 @Composable
-private fun WeeklyFocusChart(
-    dailyStats: List<DailyFocusStat>,
-    modifier: Modifier = Modifier
-) {
-    val maxMinutes = dailyStats.maxOfOrNull { stat -> stat.focusMinutes }?.coerceAtLeast(1) ?: 1
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val trackColor = MaterialTheme.colorScheme.primaryContainer
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-    HabitlyCard(
-        modifier = modifier
-    ) {
-        Text(
-            text = "Last 7 days",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Focus minutes saved from completed timer sessions.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = labelColor
-        )
-
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-        ) {
-            if (dailyStats.isEmpty()) return@Canvas
-
-            val horizontalPadding = 10.dp.toPx()
-            val topPadding = 18.dp.toPx()
-            val bottomPadding = 24.dp.toPx()
-            val chartWidth = size.width - horizontalPadding * 2
-            val chartHeight = size.height - topPadding - bottomPadding
-            val stepX = if (dailyStats.size > 1) {
-                chartWidth / (dailyStats.size - 1)
-            } else {
-                chartWidth
-            }
-
-            val points = dailyStats.mapIndexed { index, stat ->
-                val x = horizontalPadding + stepX * index
-                val valueProgress = stat.focusMinutes / maxMinutes.toFloat()
-                val y = topPadding + chartHeight - chartHeight * valueProgress
-                x to y
-            }
-
-            points.zipWithNext().forEach { (start, end) ->
-                drawLine(
-                    color = primaryColor,
-                    start = androidx.compose.ui.geometry.Offset(start.first, start.second),
-                    end = androidx.compose.ui.geometry.Offset(end.first, end.second),
-                    strokeWidth = 4.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-            }
-
-            points.forEach { point ->
-                drawCircle(
-                    color = trackColor,
-                    radius = 9.dp.toPx(),
-                    center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                )
-                drawCircle(
-                    color = primaryColor,
-                    radius = 5.dp.toPx(),
-                    center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            dailyStats.forEach { stat ->
-                Column {
-                    Text(
-                        text = stat.label,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = labelColor
-                    )
-                    Text(
-                        text = "${stat.focusMinutes}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentSessionsCard(
+private fun StudyActivityCard(
+    evidenceCount: Int,
+    taskFocusStats: List<TaskFocusStat>,
+    onOpenJournal: () -> Unit,
     sessions: List<RecentFocusSession>,
     onDeleteSession: (Long) -> Unit,
     modifier: Modifier = Modifier
@@ -540,23 +467,163 @@ private fun RecentSessionsCard(
     var sessionToDelete by remember {
         mutableStateOf<RecentFocusSession?>(null)
     }
+    var showRecentSessions by remember {
+        mutableStateOf(false)
+    }
 
     HabitlyCard(
         modifier = modifier
     ) {
         Text(
-            text = "Recent sessions",
+            text = "Study activity",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
+        Text(
+            text = "Journal snapshots and your latest focus blocks.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-        if (sessions.isEmpty()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SummaryIcon(
+                icon = Icons.Outlined.Collections,
+                accentColor = MaterialTheme.colorScheme.primary
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Study journal",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (evidenceCount == 0) {
+                        "Add a photo after a focus session."
+                    } else {
+                        "$evidenceCount study snapshots saved"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Button(onClick = onOpenJournal, modifier = Modifier.fillMaxWidth()) {
+            Text("Open study journal")
+        }
+
+        Text(
+            text = "Task focus",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Focus time grouped by linked study tasks.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        if (taskFocusStats.isEmpty()) {
             Text(
-                text = "Completed focus sessions will appear here.",
+                text = "Choose a task before starting the timer to build this summary.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
+            taskFocusStats.forEachIndexed { index, stat ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(22.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${index + 1}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stat.taskTitle,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "linked focus time",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Text(
+                        text = formatFocusDuration(stat.focusMinutes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Recent sessions",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (sessions.isEmpty()) {
+                        "Completed focus sessions will appear here."
+                    } else {
+                        "${sessions.size} latest focus sessions"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(
+                onClick = { showRecentSessions = !showRecentSessions },
+                enabled = sessions.isNotEmpty()
+            ) {
+                Icon(
+                    imageVector = if (showRecentSessions) {
+                        Icons.Outlined.KeyboardArrowUp
+                    } else {
+                        Icons.Outlined.KeyboardArrowDown
+                    },
+                    contentDescription = if (showRecentSessions) {
+                        "Hide recent sessions"
+                    } else {
+                        "Show recent sessions"
+                    }
+                )
+            }
+        }
+
+        if (showRecentSessions) {
             sessions.forEach { session ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),

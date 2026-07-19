@@ -87,7 +87,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     HabitlyScreen(
         title = "Settings",
-        subtitle = "Adjust your study defaults.",
+        subtitle = "Study defaults.",
         modifier = modifier
     ) {
         HabitlyCard {
@@ -141,7 +141,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Choose how much focus time you want each day.",
+                        text = "Choose daily focus time.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
