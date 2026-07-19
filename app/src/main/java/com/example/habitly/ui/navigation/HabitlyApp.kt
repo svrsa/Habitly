@@ -75,7 +75,11 @@ fun HabitlyApp() {
         when (selectedDestination) {
             AppDestination.Dashboard -> DashboardScreen(
                 modifier = screenModifier,
-                onOpenPlanner = { selectedDestination = AppDestination.Planner }
+                onOpenPlanner = { selectedDestination = AppDestination.Planner },
+                onStartFocus = {
+                    plannedFocusRequest = null
+                    selectedDestination = AppDestination.Timer
+                }
             )
             AppDestination.Planner -> PlannerScreen(
                 modifier = screenModifier,
@@ -146,12 +150,12 @@ private fun HabitlyBottomBar(
                 .shadow(
                     elevation = 22.dp,
                     shape = MaterialTheme.shapes.extraLarge,
-                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
+                    ambientColor = Color.Black.copy(alpha = 0.34f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
                     clip = false
                 ),
             shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+            color = Color.Black.copy(alpha = 0.18f),
             contentColor = MaterialTheme.colorScheme.primary
         ) {
             Box(modifier = Modifier.padding(vertical = 33.dp))
@@ -170,7 +174,7 @@ private fun HabitlyBottomBar(
             contentColor = MaterialTheme.colorScheme.onSurface,
             border = BorderStroke(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
+                color = Color(0xFF4D5B68).copy(alpha = 0.75f)
             )
         ) {
             Box(
@@ -179,9 +183,9 @@ private fun HabitlyBottomBar(
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFFFCFEFF),
-                                Color(0xFFF1F8FF),
-                                Color(0xFFE9F5FF)
+                                Color(0xFF242A32),
+                                Color(0xFF1A1F26),
+                                Color(0xFF15191F)
                             )
                         ),
                         shape = MaterialTheme.shapes.extraLarge
@@ -222,7 +226,7 @@ private fun HabitlyBottomBar(
                                         Surface(
                                             modifier = Modifier.size(34.dp),
                                             shape = MaterialTheme.shapes.extraLarge,
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
                                             contentColor = MaterialTheme.colorScheme.primary
                                         ) {}
                                     }

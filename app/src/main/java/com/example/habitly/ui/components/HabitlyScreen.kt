@@ -1,6 +1,7 @@
 package com.example.habitly.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,8 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
@@ -74,6 +78,8 @@ fun HabitlyScreen(
                     subtitle = subtitle
                 )
 
+                Spacer(modifier = Modifier.height(6.dp))
+
                 content()
             }
         }
@@ -85,74 +91,77 @@ private fun HabitlyBackgroundPattern(
     modifier: Modifier = Modifier
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    val dotColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.13f)
+    val tealGlow = Color(0xFF18D4C2)
+    val violetGlow = Color(0xFF7B61FF)
 
     Canvas(
         modifier = modifier.fillMaxSize()
     ) {
-        val patternTop = 152.dp.toPx()
-        val patternHeight = size.height - patternTop
-        if (patternHeight <= 0f) return@Canvas
-
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    primary.copy(alpha = 0.115f),
-                    primary.copy(alpha = 0.045f),
-                    primary.copy(alpha = 0f)
-                ),
-                center = Offset(size.width * 0.92f, patternTop + patternHeight * 0.10f),
-                radius = 270.dp.toPx()
-            ),
-            radius = 270.dp.toPx(),
-            center = Offset(size.width * 0.92f, patternTop + patternHeight * 0.10f)
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    tertiary.copy(alpha = 0.085f),
-                    tertiary.copy(alpha = 0.035f),
-                    tertiary.copy(alpha = 0f)
-                ),
-                center = Offset(size.width * 0.05f, patternTop + patternHeight * 0.58f),
-                radius = 310.dp.toPx()
-            ),
-            radius = 310.dp.toPx(),
-            center = Offset(size.width * 0.05f, patternTop + patternHeight * 0.58f)
-        )
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(
-                    primary.copy(alpha = 0.045f),
-                    primary.copy(alpha = 0f)
+                    Color(0xFF252A31),
+                    Color(0xFF151A22),
+                    Color(0xFF0D1219)
                 ),
-                startY = patternTop,
-                endY = patternTop + 220.dp.toPx()
+                startY = 0f,
+                endY = size.height
             )
         )
 
-        val dotSpacing = 28.dp.toPx()
-        val dotRadius = 1.35.dp.toPx()
-        var row = 0
-        var y = patternTop + 20.dp.toPx()
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.13f),
+                    primary.copy(alpha = 0.10f),
+                    primary.copy(alpha = 0f)
+                ),
+                center = Offset(size.width * 0.80f, 100.dp.toPx()),
+                radius = 360.dp.toPx()
+            ),
+            radius = 360.dp.toPx(),
+            center = Offset(size.width * 0.80f, 100.dp.toPx())
+        )
 
-        while (y < size.height) {
-            val rowOffset = if (row % 2 == 0) 0f else dotSpacing / 2f
-            var x = rowOffset
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    tealGlow.copy(alpha = 0.14f),
+                    tealGlow.copy(alpha = 0.045f),
+                    tealGlow.copy(alpha = 0f)
+                ),
+                center = Offset(size.width * 0.02f, size.height * 0.34f),
+                radius = 440.dp.toPx()
+            ),
+            radius = 440.dp.toPx(),
+            center = Offset(size.width * 0.02f, size.height * 0.34f)
+        )
 
-            while (x < size.width) {
-                drawCircle(
-                    color = dotColor,
-                    radius = dotRadius,
-                    center = Offset(x, y)
-                )
-                x += dotSpacing
-            }
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    violetGlow.copy(alpha = 0.12f),
+                    violetGlow.copy(alpha = 0.035f),
+                    violetGlow.copy(alpha = 0f)
+                ),
+                center = Offset(size.width * 1.04f, size.height * 0.72f),
+                radius = 500.dp.toPx()
+            ),
+            radius = 500.dp.toPx(),
+            center = Offset(size.width * 1.04f, size.height * 0.72f)
+        )
 
-            y += dotSpacing
-            row++
-        }
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    Color.Black.copy(alpha = 0.10f),
+                    Color.Transparent
+                ),
+                startY = size.height * 0.25f,
+                endY = size.height
+            )
+        )
     }
 }
 
@@ -169,61 +178,68 @@ private fun HabitlyScreenHeader(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
+            Row(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
+                Box(
+                    modifier = Modifier
+                        .width(4.dp)
+                        .height(56.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                                )
+                            ),
+                            shape = MaterialTheme.shapes.extraLarge
+                        )
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             Surface(
+                modifier = Modifier.shadow(
+                    elevation = 12.dp,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
+                    clip = false
+                ),
                 shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.10f)
+                )
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_habitly_mark),
                     contentDescription = "Habitly logo",
                     modifier = Modifier
-                        .padding(7.dp)
-                        .size(34.dp)
+                        .padding(8.dp)
+                        .size(36.dp)
                 )
             }
-        }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(56.dp)
-                    .height(4.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = MaterialTheme.shapes.extraLarge
-                    )
-            )
-            Box(
-                modifier = Modifier
-                    .padding(top = 5.dp)
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-                        shape = MaterialTheme.shapes.extraLarge
-                    )
-            )
         }
     }
 }
