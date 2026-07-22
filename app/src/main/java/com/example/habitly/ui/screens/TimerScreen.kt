@@ -51,7 +51,9 @@ fun TimerScreen(
 ) {
     val application = LocalContext.current.applicationContext as HabitlyApplication
     val viewModel: TimerViewModel = viewModel(
-        key = "timer-${plannedFocusRequest?.planId ?: "free"}",
+        key = plannedFocusRequest?.let { request ->
+            "timer-plan-${request.planId}-${request.requestId}"
+        } ?: "timer-free",
         factory = TimerViewModelFactory(
             sessionRepository = application.studySessionRepository,
             planRepository = application.studyPlanRepository,
