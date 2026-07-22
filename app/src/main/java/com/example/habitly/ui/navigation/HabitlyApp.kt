@@ -62,6 +62,7 @@ fun HabitlyApp() {
                 HabitlyBottomBar(
                     selectedDestination = selectedDestination,
                     onDestinationSelected = {
+                        if (it == AppDestination.Timer) plannedFocusRequest = null
                         selectedDestination = it
                     }
                 )
