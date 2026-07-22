@@ -127,6 +127,93 @@ The tasks screen supports swipe actions:
 
 Habitly uses Jetpack Compose and Material 3 for a modern interface. The UI includes dashboard cards, rounded surfaces, progress indicators, charts, an interactive heatmap, and clean bottom navigation.
 
+## Team and Contributions
+
+### Stefan
+
+- Core application architecture and navigation.
+- Task management and swipe interactions.
+- Focus timer and session persistence.
+- Statistics, dashboard, and task history.
+- UI design and visual refinement.
+- Testing and bug fixing.
+
+### Phillip
+
+- Study planner and planned focus workflow.
+- Evidence journal and camera integration.
+- Persistent settings and study reminders.
+- Learning streak and study heatmap.
+- Testing and feature refinement.
+
+The team collaborated on planning, testing, design decisions, debugging, documentation, and the final presentation.
+
+## Libraries and External Resources
+
+Habitly uses the following Android and Jetpack libraries:
+
+- Jetpack Compose and Material 3 for the user interface.
+- Room for local database persistence.
+- DataStore Preferences for application settings.
+- CameraX for study evidence capture.
+- Android Lifecycle, ViewModel, Flow, and StateFlow for application state.
+- AlarmManager and Android notifications for study reminders.
+- JUnit and AndroidX testing libraries for automated tests.
+
+Official Android and Jetpack documentation was used as a development reference.
+
+## Use of Artificial Intelligence
+
+AI-assisted tools were used during development for brainstorming, debugging, code suggestions, test support, UI refinement, and documentation.
+
+All AI-assisted output was reviewed, adapted, and tested by the project members. The project members remain fully responsible for the submitted implementation.
+
+## Build and Run
+
+### Requirements
+
+- Android Studio with its bundled Java runtime.
+- Android SDK 36.
+- An emulator or Android device running Android 15 (API level 35) or newer.
+
+### Android Studio
+
+1. Clone the repository.
+2. Open the project in Android Studio.
+3. Allow the Gradle synchronization to finish.
+4. Select an emulator or connected Android device.
+5. Run the `app` configuration.
+
+### Command Line
+
+Run the unit tests and create a debug APK with:
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew assembleDebug
+```
+
+The debug APK is generated under `app/build/outputs/apk/debug/`.
+
+## Testing
+
+The project includes unit tests for core application logic, including:
+
+- Task filtering and grouping.
+- Timer session save behavior.
+- Planner state calculations.
+- Learning streak calculation.
+- Study heatmap calculation.
+- Settings persistence.
+- Reminder scheduling.
+- Date and duration formatting.
+
+Run all local unit tests with:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
 ## Current Scope
 
 Habitly currently provides a solid study workflow:
