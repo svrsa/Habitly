@@ -76,6 +76,29 @@ class TimerViewModel(
                     }
                 }
         }
+
+        viewModelScope.launch {
+            planRepository.allPlans.collect { plans ->
+                timerState.update { state ->
+                    val activePlanId = state.activePlanId ?: return@update state
+                    val activePlan = plans.firstOrNull { plan -> plan.id == activePlanId }
+                    val isPlanActive = activePlan != null &&
+                        activePlan.completedBlocks < activePlan.plannedBlocks
+
+                    if (isPlanActive) {
+                        state
+                    } else {
+                        timerJob?.cancel()
+                        timerJob = null
+                        state.copy(
+                            isRunning = false,
+                            activePlanId = null,
+                            activeTaskTitle = null
+                        )
+                    }
+                }
+            }
+        }
     }
 
     fun startTimer() {
@@ -193,7 +216,12 @@ class TimerViewModel(
             planRepository.completeNextBlock(session.planEntryId)
         }
         timerState.update { currentState ->
-            currentState.copy(wasSessionSaved = true, lastSavedSessionId = sessionId)
+            currentState.copy(
+                wasSessionSaved = true,
+                lastSavedSessionId = sessionId,
+                activePlanId = null,
+                activeTaskTitle = null
+            )
         }
     }
 

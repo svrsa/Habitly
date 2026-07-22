@@ -45,5 +45,6 @@ data class PlannerEntry(
 data class PlannedFocusRequest(
     val planId: Long,
     val taskTitle: String,
-    val blockDurationMinutes: Int
+    val blockDurationMinutes: Int,
+    val requestId: Long = System.nanoTime()
 )
