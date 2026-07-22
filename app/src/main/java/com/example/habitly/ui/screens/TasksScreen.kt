@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -219,8 +220,17 @@ private fun EditTaskDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = Color(0xFF202D3A),
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        tonalElevation = 0.dp,
         title = {
-            Text(text = "Edit task")
+            Text(
+                text = "Edit task",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
         },
         text = {
             Column(
@@ -231,7 +241,17 @@ private fun EditTaskDialog(
                     onValueChange = { title = it },
                     label = { Text(text = "Task title") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color(0xFF5D7186),
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -243,13 +263,14 @@ private fun EditTaskDialog(
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = option.containerColor,
                                 selectedLabelColor = option.contentColor,
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                containerColor = Color(0xFF283443)
                             ),
                             border = FilterChipDefaults.filterChipBorder(
                                 enabled = true,
                                 selected = priority == option,
-                                borderColor = MaterialTheme.colorScheme.surfaceVariant,
-                                selectedBorderColor = option.containerColor
+                                borderColor = Color(0xFF5D7186),
+                                selectedBorderColor = option.contentColor
                             ),
                             label = {
                                 Text(text = option.label)
@@ -269,7 +290,10 @@ private fun EditTaskDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Cancel")
+                Text(
+                    text = "Cancel",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     )
@@ -434,6 +458,14 @@ private fun TaskBoard(
                             }
                         )
                     }
+                }
+
+                if (openTasks.isNotEmpty() || completedTasks.isNotEmpty()) {
+                    Text(
+                        text = "Swipe right to complete · left to delete",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
+                    )
                 }
 
                 if (openTasks.isEmpty() && completedTasks.isEmpty()) {
